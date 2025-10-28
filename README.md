@@ -78,7 +78,7 @@ Jane is experimenting with Kagenti as a potential agent management platform. She
 
 ### 1. AgentCard CRD (IMPLEMENTED ✓)
 
-**Location:** `kagenti-operator/api/v1alpha1/agentcard_types.go`
+**Location:** [Here](https://github.com/usize/kagenti-operator/blob/0c3d8b5641bab7ee9b65419338b1abfccb5d3e45/kagenti-operator/api/v1alpha1/agentcard_types.go)
 
 **What it does:**
 - Defines a Kubernetes CR that caches an agent's capabilities
@@ -98,6 +98,12 @@ Jane is experimenting with Kagenti as a potential agent management platform. She
 
 **What it enables:**
 - A supervisor can discover and use agents in a cluster to solve problems.
+
+### 3. Control Plane Agents
+
+**What they provide:**
+- Each agent exposes some skills, and has access to tools, which enable some aspect of cluster management: reading logs, listing crds, etc...
+- Together with a `supervisor` or the `A2A <-> Kagenti Bridge` they act as a unified control plane.
 
 ## Key Design Decisions
 
