@@ -1,0 +1,17 @@
+[project]
+name = "agentic-control-plane"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "a2a-sdk[all,http-server]>=0.3.10",
+    "fastmcp>=2.13.0.2",
+    "httpx>=0.28.1",
+    "kubernetes>=31.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+]
