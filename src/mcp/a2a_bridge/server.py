@@ -5,16 +5,59 @@ MCP Server for A2A Agent Discovery using Kagenti's AgentCard CRD.
 This server provides tools to discover and interact with A2A-compliant agents
 in Kubernetes clusters running Kagenti. It uses the AgentCard CRD which caches
 agent card data, eliminating the need for direct HTTP calls to agent endpoints.
+
+Authentication:
+When deployed behind Authorino, this server receives headers injected after
+JWT validation:
+- X-Auth-User: Username (e.g., "mofoster")
+- X-Auth-Email: Email address
+- X-Auth-Groups: JSON array of groups
+- X-Auth-Token: Original JWT token
+
+The server uses the JWT to call Kubernetes API, enforcing user-level RBAC.
 """
 
 from typing import Optional
 from fastmcp import FastMCP
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
 
-from lib import discovery, a2a
+from lib import discovery, a2a, auth
 
 
 # Create the MCP server
 mcp = FastMCP("A2A Bridge")
+
+
+class AuthHeaderMiddleware(BaseHTTPMiddleware):
+    """
+    Middleware to extract authentication headers injected by Authorino.
+
+    Authorino validates the JWT and injects user identity as headers.
+    We extract these and store in context for use in tool handlers.
+    """
+
+    async def dispatch(self, request: Request, call_next):
+        # Extract auth headers (case-insensitive)
+        user = request.headers.get("x-auth-user") or request.headers.get("X-Auth-User")
+        token = request.headers.get("x-auth-token") or request.headers.get("X-Auth-Token")
+        email = request.headers.get("x-auth-email") or request.headers.get("X-Auth-Email")
+        groups = request.headers.get("x-auth-groups") or request.headers.get("X-Auth-Groups")
+
+        # Store in context for this request
+        auth.set_auth_context(user=user, token=token, email=email, groups=groups)
+
+        try:
+            response = await call_next(request)
+        finally:
+            # Clear context after request
+            auth.set_auth_context(None, None, None, None)
+
+        return response
+
+
+# Add middleware to extract auth headers
+mcp.app.add_middleware(AuthHeaderMiddleware)
 
 
 @mcp.tool()

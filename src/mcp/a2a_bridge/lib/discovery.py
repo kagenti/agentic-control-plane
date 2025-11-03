@@ -2,27 +2,23 @@
 
 import json
 from typing import Optional, Dict, Any, List
-from kubernetes import client, config
+from kubernetes import client
 from kubernetes.client.exceptions import ApiException
+from . import auth
 
 
 def _get_k8s_client() -> client.CustomObjectsApi:
     """
-    Get a Kubernetes API client.
+    Get a Kubernetes API client for the current request.
 
-    Supports both local (kubeconfig) and remote (in-cluster) configurations.
+    Uses the authenticated user's JWT if available (from Authorino headers),
+    otherwise falls back to default configuration.
 
     Returns:
-        Kubernetes CustomObjectsApi client configured for the environment
+        Kubernetes CustomObjectsApi client
     """
-    try:
-        # Try to load in-cluster config first (for remote deployment)
-        config.load_incluster_config()
-    except config.ConfigException:
-        # Fall back to local kubeconfig (for development)
-        config.load_kube_config()
-
-    return client.CustomObjectsApi()
+    api_client = auth.create_k8s_client()
+    return client.CustomObjectsApi(api_client)
 
 
 def get_namespace_scope(
@@ -46,18 +42,10 @@ def get_namespace_scope(
     elif namespace:
         return namespace, f"namespace: {namespace}"
     else:
-        # Get current namespace from context
-        try:
-            _, current_context = config.list_kube_config_contexts()
-            if current_context and 'namespace' in current_context['context']:
-                current_ns = current_context['context']['namespace']
-                return current_ns, f"current namespace: {current_ns}"
-            else:
-                # Default to 'default' namespace if none set
-                return "default", "namespace: default"
-        except Exception:
-            # If we can't determine, default to 'default'
-            return "default", "namespace: default"
+        # When authenticated via Authorino, we don't have a "current namespace"
+        # Default to 'default' namespace
+        # Users should specify the namespace explicitly for better clarity
+        return "default", "namespace: default"
 
 
 def discover_agent_cards(
