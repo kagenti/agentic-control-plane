@@ -19,6 +19,7 @@ The server uses the JWT to call Kubernetes API, enforcing user-level RBAC.
 
 from typing import Optional
 from fastmcp import FastMCP
+from starlette.middleware import Middleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 
@@ -56,8 +57,8 @@ class AuthHeaderMiddleware(BaseHTTPMiddleware):
         return response
 
 
-# Add middleware to extract auth headers
-mcp.app.add_middleware(AuthHeaderMiddleware)
+# Prepare middleware to pass to mcp.run()
+AUTH_MIDDLEWARE = [Middleware(AuthHeaderMiddleware)]
 
 
 @mcp.tool()
@@ -171,8 +172,14 @@ async def send_streaming_message_to_agent(
 
 
 def main():
-    """Run the MCP server."""
-    mcp.run()
+    """Run the MCP server with uvicorn."""
+    import uvicorn
+
+    # Create HTTP app with custom middleware
+    app = mcp.http_app(middleware=AUTH_MIDDLEWARE)
+
+    # Run with uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
 
 
 if __name__ == "__main__":
