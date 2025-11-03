@@ -29,9 +29,9 @@ spec:
           include_peer_certificate: true
           grpc_service:
             google_grpc:
-              target_uri: authorino-authorino-authorization.a2a-mcp-bridge.svc.cluster.local:50051
+              target_uri: authorino-authorization.kagenti-a2a-mcp-bridge.svc.cluster.local:50051
               stat_prefix: ext_authz
-            timeout: 1s
+            timeout: 3s
           # Pass all request headers to Authorino
           with_request_body:
             max_request_bytes: 8192

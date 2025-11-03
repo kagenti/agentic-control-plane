@@ -10,12 +10,12 @@ apiVersion: authorino.kuadrant.io/v1beta2
 kind: AuthConfig
 metadata:
   name: a2a-mcp-bridge-auth
-  namespace: a2a-mcp-bridge
+  namespace: kagenti-a2a-mcp-bridge
 spec:
-  # Apply to MCP bridge service
-  # Must match HTTPRoute hostname
+  # Apply to MCP bridge service accessed through the internal gateway
+  # Use the gateway's internal cluster hostname
   hosts:
-  - "a2a-bridge.mcp.test.com"
+  - "mcp-gateway-istio.gateway-system.svc.cluster.local"
 
   # AUTHENTICATION: Validate JWT token
   authentication:
@@ -48,6 +48,9 @@ spec:
 
   # Don't require auth for health checks
   when:
+  - selector: context.request.http.path
+    operator: neq
+    value: /health
   - selector: context.request.http.path
     operator: neq
     value: /healthz

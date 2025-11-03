@@ -90,7 +90,8 @@ def create_k8s_client_from_token(jwt_token: str) -> ApiClient:
             raise Exception(f"Failed to load kubeconfig: {e}")
 
     # Use the user's JWT as bearer token
-    config.api_key = {"authorization": f"Bearer {jwt_token}"}
+    # Let the client library add the "Bearer" prefix via api_key_prefix
+    config.api_key = {"authorization": jwt_token}
     config.api_key_prefix = {"authorization": "Bearer"}
 
     return ApiClient(configuration=config)

@@ -5,7 +5,7 @@ apiVersion: operator.authorino.kuadrant.io/v1beta1
 kind: Authorino
 metadata:
   name: authorino
-  namespace: a2a-mcp-bridge
+  namespace: kagenti-a2a-mcp-bridge
 spec:
   # Listener for ext_authz protocol (gRPC from Envoy)
   listener:
