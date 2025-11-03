@@ -1,0 +1,28 @@
+---
+# Authorino Instance
+# This creates the actual auth service that validates requests
+apiVersion: operator.authorino.kuadrant.io/v1beta1
+kind: Authorino
+metadata:
+  name: authorino
+  namespace: a2a-mcp-bridge
+spec:
+  # Listener for ext_authz protocol (gRPC from Envoy)
+  listener:
+    tls:
+      enabled: false  # TLS handled by Istio mesh
+
+  # OIDC server for OAuth metadata discovery
+  # Serves /.well-known/openid-configuration for MCP clients
+  oidcServer:
+    tls:
+      enabled: false
+
+  # Cluster-wide mode
+  clusterWide: true
+
+  # Image and resource settings
+  image: quay.io/kuadrant/authorino:latest
+  replicas: 1
+  logLevel: info
+  logMode: production
