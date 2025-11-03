@@ -174,9 +174,19 @@ async def send_streaming_message_to_agent(
 def main():
     """Run the MCP server with uvicorn."""
     import uvicorn
+    from starlette.responses import PlainTextResponse
+    from starlette.routing import Route
+
+    # Health check handler for Kubernetes probes
+    async def health(request):
+        return PlainTextResponse("OK")
 
     # Create HTTP app with custom middleware
     app = mcp.http_app(middleware=AUTH_MIDDLEWARE)
+
+    # Add health check routes
+    app.routes.append(Route("/health", health))
+    app.routes.append(Route("/healthz", health))
 
     # Run with uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
