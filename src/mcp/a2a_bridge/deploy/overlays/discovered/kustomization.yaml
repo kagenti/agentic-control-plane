@@ -4,7 +4,6 @@ kind: Kustomization
 resources:
   - ../../base
 
-# Replace placeholder in AuthConfig with discovered Keycloak URL
 patches:
   - target:
       kind: AuthConfig
@@ -12,4 +11,4 @@ patches:
     patch: |-
       - op: replace
         path: /spec/authentication/keycloak-jwt/jwt/issuerUrl
-        value: https://keycloak-keycloak.apps.kagenti-ci.octo-emerging.redhataicoe.com/realms/master
+        value: http://keycloak-service.keycloak.svc.cluster.local:8080/realms/master

@@ -13,8 +13,9 @@ metadata:
   namespace: a2a-mcp-bridge
 spec:
   # Apply to MCP bridge service
+  # Must match HTTPRoute hostname
   hosts:
-  - "a2a-mcp-bridge.a2a-mcp-bridge.svc.cluster.local"
+  - "a2a-bridge.mcp.test.com"
 
   # AUTHENTICATION: Validate JWT token
   authentication:

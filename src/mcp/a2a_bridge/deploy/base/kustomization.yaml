@@ -9,3 +9,4 @@ resources:
   - authorino-operator.yaml
   - authorino-instance.yaml
   - authconfig.yaml
+  - gateway-authz-envoyfilter.yaml
