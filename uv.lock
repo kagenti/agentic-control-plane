@@ -50,6 +50,7 @@ dependencies = [
     { name = "fastmcp" },
     { name = "httpx" },
     { name = "kubernetes" },
+    { name = "requests" },
 ]
 
 [package.optional-dependencies]
@@ -64,6 +65,7 @@ requires-dist = [
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "kubernetes", specifier = ">=31.0.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0.0" },
+    { name = "requests", specifier = ">=2.32.5" },
 ]
 provides-extras = ["dev"]
 
