@@ -1,0 +1,33 @@
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: a2a-mcp-bridge
+  namespace: a2a-mcp-bridge
+  labels:
+    app: a2a-mcp-bridge
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: a2a-mcp-bridge
+  namespace: a2a-mcp-bridge
+  labels:
+    app: a2a-mcp-bridge
+spec:
+  output:
+    to:
+      kind: ImageStreamTag
+      name: a2a-mcp-bridge:latest
+  source:
+    type: Git
+    git:
+      uri: https://github.com/kagenti/kagenti-zoo.git
+      ref: a2a_mcp
+    contextDir: agentic-control-plane/src/mcp/a2a_bridge
+  strategy:
+    type: Docker
+    dockerStrategy:
+      dockerfilePath: Dockerfile
+  triggers:
+  - type: ConfigChange
+  - type: ImageChange

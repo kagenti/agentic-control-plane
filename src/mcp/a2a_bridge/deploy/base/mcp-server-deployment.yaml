@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: a2a-mcp-bridge
+  namespace: a2a-mcp-bridge
+  labels:
+    app: a2a-mcp-bridge
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: a2a-mcp-bridge
+  template:
+    metadata:
+      labels:
+        app: a2a-mcp-bridge
+    spec:
+      serviceAccountName: a2a-mcp-bridge
+      containers:
+      - name: server
+        image: image-registry.openshift-image-registry.svc:5000/a2a-mcp-bridge/a2a-mcp-bridge:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+          name: http
+          protocol: TCP
+        env:
+        - name: PYTHONUNBUFFERED
+          value: "1"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 10

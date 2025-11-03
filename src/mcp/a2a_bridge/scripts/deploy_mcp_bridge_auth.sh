@@ -127,24 +127,41 @@ kubectl wait --for=condition=ready --timeout=120s \
   authorino/authorino -n a2a-mcp-bridge
 
 echo ""
-echo "[7/7] Deploying AuthConfig..."
+echo "[7/9] Deploying MCP server resources..."
+kubectl apply -f "$DEPLOY_DIR/base/mcp-server-serviceaccount.yaml"
+kubectl apply -f "$DEPLOY_DIR/base/mcp-server-buildconfig.yaml"
+kubectl apply -f "$DEPLOY_DIR/base/mcp-server-service.yaml"
+
+echo ""
+echo "[8/9] Triggering image build..."
+oc start-build a2a-mcp-bridge -n a2a-mcp-bridge --follow
+
+echo ""
+echo "[9/9] Deploying MCP server and AuthConfig..."
+kubectl apply -f "$DEPLOY_DIR/base/mcp-server-deployment.yaml"
+kubectl apply -f "$DEPLOY_DIR/base/mcp-server-httproute.yaml"
 kubectl apply -k "$OVERLAY_DIR"
+
+echo ""
+echo "  Waiting for MCP server to be ready..."
+kubectl wait --for=condition=available --timeout=120s \
+  deployment/a2a-mcp-bridge -n a2a-mcp-bridge || true
 
 echo ""
 echo "======================================================================="
 echo "Deployment Complete!"
 echo "======================================================================="
 echo ""
-echo "Authorino is now running and configured to validate JWTs from Keycloak."
+echo "Authorino and MCP server are now running."
 echo ""
 echo "Configuration:"
 echo "  Namespace: a2a-mcp-bridge"
 echo "  Keycloak: $KEYCLOAK_URL"
 echo "  Realm: $KEYCLOAK_REALM"
 echo "  Issuer: $KEYCLOAK_ISSUER_URL"
+echo "  MCP Server: a2a-bridge.mcp.test.com"
 echo ""
 echo "Next steps:"
-echo "  1. Deploy MCP server with Authorino integration"
-echo "  2. Configure Gateway to use Authorino for ext_authz"
-echo "  3. Test with Claude Code"
+echo "  1. Configure Gateway to use Authorino for ext_authz"
+echo "  2. Test with Claude Code"
 echo ""
