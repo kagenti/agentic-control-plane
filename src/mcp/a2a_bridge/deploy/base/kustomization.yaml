@@ -7,12 +7,8 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - namespace-networkpolicy.yaml
-  - authorino-operator.yaml
-  - authorino-instance.yaml
-  - authconfig.yaml
   - mcp-server-serviceaccount.yaml
   - mcp-server-buildconfig.yaml
   - mcp-server-service.yaml
   - mcp-server-deployment.yaml
-  - mcp-server-httproute.yaml
-  - gateway-authz-envoyfilter.yaml
+  - mcp-server-route.yaml

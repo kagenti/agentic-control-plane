@@ -34,18 +34,17 @@ spec:
           limits:
             memory: "512Mi"
             cpu: "500m"
-        # Temporarily disabled probes for testing
-        # livenessProbe:
-        #   httpGet:
-        #     path: /health
-        #     port: 8000
-        #   initialDelaySeconds: 15
-        #   periodSeconds: 30
-        #   timeoutSeconds: 5
-        # readinessProbe:
-        #   httpGet:
-        #     path: /health
-        #     port: 8000
-        #   initialDelaySeconds: 10
-        #   periodSeconds: 10
-        #   timeoutSeconds: 5
+         livenessProbe:
+           httpGet:
+             path: /health
+             port: 8000
+           initialDelaySeconds: 15
+           periodSeconds: 30
+           timeoutSeconds: 5
+         readinessProbe:
+           httpGet:
+             path: /health
+             port: 8000
+           initialDelaySeconds: 10
+           periodSeconds: 10
+           timeoutSeconds: 5

@@ -21,9 +21,9 @@ spec:
   source:
     type: Git
     git:
-      uri: https://github.com/kagenti/kagenti-zoo.git
+      uri: https://github.com/kagenti/agentic-control-plane.git
       ref: a2a_mcp
-    contextDir: agentic-control-plane/src/mcp/a2a_bridge
+    contextDir: src/mcp/a2a_bridge
   strategy:
     type: Docker
     dockerStrategy:

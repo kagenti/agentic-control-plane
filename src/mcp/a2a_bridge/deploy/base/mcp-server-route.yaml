@@ -1,0 +1,22 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: a2a-mcp-bridge
+  namespace: kagenti-a2a-mcp-bridge
+  labels:
+    app: a2a-mcp-bridge
+  annotations:
+    # Enable OAuth authentication
+    haproxy.router.openshift.io/timeout: 60s
+spec:
+  # Let OpenShift generate a hostname
+  to:
+    kind: Service
+    name: a2a-mcp-bridge
+    weight: 100
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None

@@ -3,12 +3,3 @@ kind: Kustomization
 
 resources:
   - ../../base
-
-patches:
-  - target:
-      kind: AuthConfig
-      name: a2a-mcp-bridge-auth
-    patch: |-
-      - op: replace
-        path: /spec/authentication/keycloak-jwt/jwt/issuerUrl
-        value: http://keycloak-service.keycloak.svc.cluster.local:8080/realms/master
