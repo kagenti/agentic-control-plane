@@ -1,0 +1,38 @@
+# Python build artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Environment / virtualenv
+.venv/
+venv/
+env/
+.env
+.env.*
+
+# Packaging / tooling
+*.egg-info/
+dist/
+build/
+
+# Editor / IDE
+.idea/
+.vscode/
+*.code-workspace
+
+# Ruff / Black / Pre-commit caches
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+.pre-commit-config.yaml.bak
+
+# Logs and local data
+*.log
+coverage.xml
+.coverage*
+
+# OS files
+.DS_Store
+Thumbs.db
