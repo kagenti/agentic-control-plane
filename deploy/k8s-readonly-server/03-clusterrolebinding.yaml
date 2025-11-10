@@ -1,0 +1,16 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: k8s-readonly-server
+  labels:
+    app.kubernetes.io/name: k8s-readonly-server
+    app.kubernetes.io/component: mcp-tool
+    app.kubernetes.io/part-of: kagenti
+subjects:
+  - kind: ServiceAccount
+    name: k8s-readonly-server
+    namespace: kagenti-agents
+roleRef:
+  kind: ClusterRole
+  name: k8s-readonly
+  apiGroup: rbac.authorization.k8s.io

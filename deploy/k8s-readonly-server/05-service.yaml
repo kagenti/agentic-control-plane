@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: k8s-readonly-server
+  namespace: kagenti-agents
+  labels:
+    app: k8s-readonly-server
+    app.kubernetes.io/name: k8s-readonly-server
+    app.kubernetes.io/component: mcp-tool
+    app.kubernetes.io/part-of: kagenti
+spec:
+  type: ClusterIP
+  selector:
+    app: k8s-readonly-server
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP

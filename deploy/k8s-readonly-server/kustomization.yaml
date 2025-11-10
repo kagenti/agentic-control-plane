@@ -1,0 +1,23 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: kagenti-agents
+
+resources:
+  - 00-namespace.yaml
+  - 01-serviceaccount.yaml
+  - 02-clusterrole.yaml
+  - 03-clusterrolebinding.yaml
+  - 04-deployment.yaml
+  - 05-service.yaml
+
+commonLabels:
+  app.kubernetes.io/managed-by: kustomize
+  app.kubernetes.io/version: "0.1.0"
+
+# Add a name prefix if deploying multiple instances
+# namePrefix: demo-
+
+# Add common annotations
+commonAnnotations:
+  description: "Kubernetes read-only MCP server for agent debugging"
