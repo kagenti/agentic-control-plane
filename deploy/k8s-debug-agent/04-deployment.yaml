@@ -57,7 +57,7 @@ spec:
             - name: MAX_PLAN_STEPS
               value: "6"
             - name: MCP_URL
-              value: "http://k8s-readonly-server.kagenti-agents.svc.cluster.local:8080"
+              value: "http://k8s-readonly-server.kagenti-agents.svc.cluster.local:8080/mcp"
             - name: XDG_CACHE_HOME
               value: "/tmp/.cache"
           resources:
