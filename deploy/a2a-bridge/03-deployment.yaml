@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: a2a-bridge
+  namespace: kagenti-agents
+  labels:
+    app: a2a-bridge
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: a2a-bridge
+  template:
+    metadata:
+      labels:
+        app: a2a-bridge
+    spec:
+      serviceAccountName: a2a-bridge
+      containers:
+        - name: bridge
+          image: quay.io/rh-ee-mofoster/a2a-bridge:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
