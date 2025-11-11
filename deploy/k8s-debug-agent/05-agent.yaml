@@ -1,0 +1,69 @@
+apiVersion: agent.kagenti.dev/v1alpha1
+kind: Agent
+metadata:
+  name: k8s-debug-agent
+  namespace: kagenti-agents
+  labels:
+    app.kubernetes.io/name: k8s-debug-agent
+    kagenti.io/type: agent
+    kagenti.io/agent-protocol: a2a
+  annotations:
+    description: Kubernetes debugging agent that diagnoses workload issues
+spec:
+  description: Diagnose Kubernetes workloads and provide actionable remediation guidance
+  imageSource:
+    image: quay.io/rh-ee-mofoster/k8s-debug-agent:latest
+  replicas: 1
+  servicePorts:
+    - name: http
+      port: 8000
+      protocol: TCP
+      targetPort: 8000
+  podTemplateSpec:
+    spec:
+      serviceAccountName: k8s-debug-agent
+      volumes:
+        - name: tmp
+          emptyDir: {}
+      containers:
+        - name: agent
+          image: <will be replaced with imageSource.image above>
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          env:
+            - name: SERVICE_PORT
+              value: "8000"
+            - name: LOG_LEVEL
+              value: "INFO"
+            - name: TASK_MODEL_ID
+              value: "gpt-4o-mini"
+            - name: LLM_API_BASE
+              value: "https://api.openai.com/v1"
+            - name: LLM_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: openai-secret
+                  key: apikey
+            - name: MODEL_TEMPERATURE
+              value: "0"
+            - name: MAX_PLAN_STEPS
+              value: "6"
+            - name: MCP_URL
+              value: "http://k8s-readonly-server.kagenti-agents.svc.cluster.local:8080/mcp"
+            - name: XDG_CACHE_HOME
+              value: "/tmp/.cache"
+          securityContext:
+            readOnlyRootFilesystem: false
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            limits:
+              cpu: "1000m"
+              memory: "2Gi"
+            requests:
+              cpu: "200m"
+              memory: "512Mi"

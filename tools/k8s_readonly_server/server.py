@@ -33,13 +33,12 @@ apps_v1 = client.AppsV1Api()
 mcp = FastMCP("Kubernetes Read-Only")
 
 # Get allowed namespaces from environment
-ALLOWED_NAMESPACES = os.getenv("ALLOWED_NAMESPACES", "default").split(",")
+ALLOWED_NAMESPACES = [_.lower() for _ in os.getenv("ALLOWED_NAMESPACES", "default").split(",")]
 
 
 def validate_namespace(namespace: str) -> None:
-    return
     """Validate that namespace is in allowed list."""
-    if namespace not in ALLOWED_NAMESPACES:
+    if namespace.lower() not in ALLOWED_NAMESPACES:
         raise ValueError(
             f"Namespace '{namespace}' not allowed. Allowed namespaces: {ALLOWED_NAMESPACES}"
         )
@@ -287,6 +286,9 @@ def describe_pod(namespace: str, pod_name: str) -> str:
 
     try:
         pod = v1.read_namespaced_pod(name=pod_name, namespace=namespace)
+
+        if not pod:
+            return f"No pod {pod_name} found in namespace {namespace}"
 
         pod_info = {
             "name": pod.metadata.name,

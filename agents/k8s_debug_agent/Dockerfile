@@ -1,15 +1,15 @@
-FROM quay.io/pdettori/python:3.12-slim
-
-RUN apt-get update && apt-get install -y git
-
-COPY --from=ghcr.io/astral-sh/uv:0.6.8 /uv /uvx /bin/
-
-ADD . /app
+FROM python:3.12-slim
 
 WORKDIR /app
 
-RUN --mount=type=cache,target=/root/.cache/uv uv sync
+# Copy all files for package installation
+COPY . /app/
 
-ENV PATH="/app/.venv/bin:$PATH"
+# Install the package with dependencies
+RUN pip install --no-cache-dir .
 
-CMD ["uv", "run", "server", "--host", "0.0.0.0", "--port", "8000"]
+# Set proper permissions for OpenShift compatibility
+RUN chmod -R g+rwX /app && \
+    chgrp -R 0 /app
+
+CMD ["python", "-c", "from a2a_agent import run; run()"]

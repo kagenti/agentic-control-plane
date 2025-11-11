@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-debug-agent
+  namespace: kagenti-agents
+  labels:
+    app: k8s-debug-agent
+    app.kubernetes.io/name: k8s-debug-agent
+    app.kubernetes.io/component: agent
+    app.kubernetes.io/part-of: kagenti
+    kagenti.io/type: agent
+    kagenti.io/protocol: a2a
+    kagenti.io/framework: autogen
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k8s-debug-agent
+  template:
+    metadata:
+      labels:
+        app: k8s-debug-agent
+        app.kubernetes.io/name: k8s-debug-agent
+        app.kubernetes.io/component: agent
+        kagenti.io/type: agent
+        kagenti.io/protocol: a2a
+        kagenti.io/framework: autogen
+    spec:
+      serviceAccountName: k8s-debug-agent
+      securityContext:
+        runAsNonRoot: true
+        # Let OpenShift assign UID/GID from allowed range
+      containers:
+        - name: agent
+          image: quay.io/rh-ee-mofoster/k8s-debug-agent:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          env:
+            - name: SERVICE_PORT
+              value: "8000"
+            - name: LOG_LEVEL
+              value: "INFO"
+            - name: TASK_MODEL_ID
+              value: "gpt-4o-mini"
+            - name: LLM_API_BASE
+              value: "https://api.openai.com/v1"
+            - name: LLM_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: openai-secret
+                  key: apikey
+            - name: MODEL_TEMPERATURE
+              value: "0"
+            - name: MAX_PLAN_STEPS
+              value: "6"
+            - name: MCP_URL
+              value: "http://k8s-readonly-server.kagenti-agents.svc.cluster.local:8080/mcp"
+            - name: XDG_CACHE_HOME
+              value: "/tmp/.cache"
+          resources:
+            limits:
+              cpu: "1000m"
+              memory: "2Gi"
+            requests:
+              cpu: "200m"
+              memory: "512Mi"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: false

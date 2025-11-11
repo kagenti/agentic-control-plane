@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-readonly-server
+  namespace: kagenti-agents
+  labels:
+    app: k8s-readonly-server
+    app.kubernetes.io/name: k8s-readonly-server
+    app.kubernetes.io/component: mcp-tool
+    app.kubernetes.io/part-of: kagenti
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k8s-readonly-server
+  template:
+    metadata:
+      labels:
+        app: k8s-readonly-server
+        app.kubernetes.io/name: k8s-readonly-server
+        app.kubernetes.io/component: mcp-tool
+    spec:
+      serviceAccountName: k8s-readonly-server
+      securityContext:
+        runAsNonRoot: true
+        # Let OpenShift assign UID/GID from allowed range
+      containers:
+        - name: server
+          image: quay.io/rh-ee-mofoster/k8s-readonly-mcp-server:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: MCP_SERVER_PORT
+              value: "8080"
+            - name: ALLOWED_NAMESPACES
+              value: "default,kagenti-agents,kagenti-system,kube-system"
+          resources:
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
+            requests:
+              cpu: "50m"
+              memory: "128Mi"
+          # Note: Health probes removed - MCP server doesn't expose /health endpoint
+          # Consider adding health endpoint to server.py in the future
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
