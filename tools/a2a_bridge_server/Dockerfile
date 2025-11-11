@@ -10,9 +10,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY server.py .
 COPY lib/ ./lib/
 
-# Run as non-root user
-RUN useradd -m -u 1000 mcp && chown -R mcp:mcp /app
-USER mcp
+# OpenShift compatibility: set group permissions for arbitrary UID
+RUN chmod -R g+rwX /app && \
+    chgrp -R 0 /app
+
+# Run as non-root user (OpenShift will use random UID with gid 0)
+USER 1000
 
 # Expose port (MCP servers typically use SSE, common port 8000)
 EXPOSE 8000
