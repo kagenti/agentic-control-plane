@@ -1,0 +1,36 @@
+[project]
+name = "source-code-analyzer"
+version = "0.1.0"
+description = "Github source code analyzer agent implementing the A2A protocol."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "ag2[openai,mcp]>=0.10.0",
+    "a2a-sdk>=0.3.10",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.6.4",
+    "black>=24.4.2",
+    "pre-commit>=3.7.1",
+]
+
+[project.scripts]
+server = "a2a_agent:run"
+
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+extend-select = ["I"]
+
+[tool.black]
+line-length = 100
+target-version = ["py310"]

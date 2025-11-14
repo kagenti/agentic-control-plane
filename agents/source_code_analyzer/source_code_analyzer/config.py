@@ -1,0 +1,64 @@
+import json
+import os
+from typing import Literal
+
+from pydantic import Field, model_validator
+from pydantic_settings import BaseSettings
+
+
+class Settings(BaseSettings):
+    LOG_LEVEL: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = Field(
+        os.getenv("LOG_LEVEL", "DEBUG"),
+        description="Application log level",
+    )
+    TASK_MODEL_ID: str = Field(
+        os.getenv("TASK_MODEL_ID", "gpt-oss:20b"),
+        description="The ID of the task model",
+    )
+    LLM_API_BASE: str = Field(
+        os.getenv("LLM_API_BASE", "http://localhost:11434/v1"),
+        description="The URL for OpenAI API",
+    )
+    LLM_API_KEY: str = Field(
+        os.getenv("LLM_API_KEY", "my_api_key"), description="The key for OpenAI API"
+    )
+    EXTRA_HEADERS: dict = Field({}, description="Extra headers for the OpenAI API")
+    MAX_FILES_TO_RETRIEVE: int = Field(
+        os.getenv("MAX_FILES_TO_RETRIEVE", 6),
+        description="The maximum number of files to retrieve their full content of at a time for analysis",
+        ge=1,
+    )
+    MODEL_TEMPERATURE: float = Field(
+        os.getenv("MODEL_TEMPERATURE", 0),
+        description="The temperature for the model",
+        ge=0,
+    )
+    MCP_URL: str = Field(
+        os.getenv("MCP_URL", "http://kubernetes-tool:8000"),
+        description="Endpoint for an option MCP server",
+    )
+    MCP_TOKEN: str = Field(
+        os.getenv("MCP_TOKEN", ""),
+        description="Auth token for MCP server",
+    )
+    SERVICE_PORT: int = Field(
+        os.getenv("SERVICE_PORT", 8000),
+        description="Port on which the service will run.",
+    )
+
+    class Config:
+        env_file = ".env"
+        env_file_encoding = "utf-8"
+
+    @model_validator(mode="after")
+    def validate_extra_headers(self) -> "Settings":
+        if os.getenv("EXTRA_HEADERS"):
+            try:
+                self.EXTRA_HEADERS = json.loads(os.getenv("EXTRA_HEADERS"))
+            except json.JSONDecodeError:
+                raise ValueError("EXTRA_HEADERS must be a valid JSON string")
+
+        return self
+
+
+settings = Settings()  # type: ignore[call-arg]
