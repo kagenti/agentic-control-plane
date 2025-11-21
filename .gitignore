@@ -10,7 +10,7 @@ __pycache__/
 venv/
 env/
 .env
-.env.*
+.env
 
 # Packaging / tooling
 *.egg-info/
