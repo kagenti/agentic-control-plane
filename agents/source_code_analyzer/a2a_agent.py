@@ -7,6 +7,7 @@ import sys
 import traceback
 from typing import Optional
 
+import openlit
 import uvicorn
 from a2a.server.agent_execution import AgentExecutor, RequestContext
 from a2a.server.apps import A2AStarletteApplication
@@ -29,6 +30,9 @@ logging.basicConfig(
     stream=sys.stdout,
     format="%(levelname)s: %(message)s",
 )
+
+# Telemetry capture
+openlit.init()
 
 
 def get_agent_card(host: str, port: int) -> AgentCard:
