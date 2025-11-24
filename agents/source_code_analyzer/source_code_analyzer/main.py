@@ -44,7 +44,7 @@ class SourceCodeAnalyzer:
             return error_message
 
     async def summarize_results(self, file_info):
-        self.eventer.emit_event("📝 Generating a report.")
+        await self.eventer.emit_event("📝 Generating a report.")
         determination_message = (
             "You are a savvy engineer who will determine which of the following files answer the user's query."
             "You will pick one file from the one or more files below and clearly state your reason for picking it, citing evidence from the file."
@@ -88,13 +88,13 @@ class SourceCodeAnalyzer:
         except Exception as e:
             self.logger.error(traceback.format_exception(e))
             raise AgentWorkflowError("Unable to determine the repository information needed")
-        self.eventer.emit_event(
+        await self.eventer.emit_event(
             f"🕵️‍♀️ Investigating the following Github repository: {str(self.context.repo_details.model_dump(mode="json"))}"
         )
 
     async def _search_repository_for_files(self):
         """Use the GitHub search assistant to gather candidate files."""
-        self.eventer.emit_event("🔎 Searching Github for relevant files...")
+        await self.eventer.emit_event("🔎 Searching Github for relevant files...")
         message = self._build_github_search_message()
         search_output = await self.agents.user_proxy.a_initiate_chat(
             recipient=self.agents.code_search_assistant,
@@ -127,7 +127,7 @@ class SourceCodeAnalyzer:
 
     async def _summarize_candidates(self, search_assessment):
         """Summarize search output into candidate files."""
-        self.eventer.emit_event("🧐 Analyzing gathered files...")
+        await self.eventer.emit_event("🧐 Analyzing gathered files...")
         message = f"User Query: {self.context.goal} \n {search_assessment}"
         search_summary = await self.agents.user_proxy.a_initiate_chat(
             recipient=self.agents.file_search_summarizer,
@@ -145,7 +145,7 @@ class SourceCodeAnalyzer:
     async def _determine_best_file(self, candidate_files: CandidateFiles):
         """Return early with a confident pick or fetch more detail for a final decision."""
         if self._has_confident_top_pick(candidate_files):
-            self.eventer.emit_event("🎯 Identified most likely file")
+            await self.eventer.emit_event("🎯 Identified most likely file")
             return await self.summarize_results(candidate_files.top_file_pick.strip())
 
         candidate_file_contents = await self._retrieve_candidate_file_contents(candidate_files)
@@ -161,7 +161,7 @@ class SourceCodeAnalyzer:
         candidates_to_fetch = candidate_files.candidate_files[: self.config.MAX_FILES_TO_RETRIEVE]
         candidate_file_contents = []
         for file in candidates_to_fetch:
-            self.eventer.emit_event(f"🗃️ Fetching file contents of candidate {file}")
+            await self.eventer.emit_event(f"🗃️ Fetching file contents of candidate {file}")
             message = self._build_file_retrieval_message(file)
             file_grab_output = await self.agents.user_proxy.a_initiate_chat(
                 recipient=self.agents.file_retrieval_assistant,
