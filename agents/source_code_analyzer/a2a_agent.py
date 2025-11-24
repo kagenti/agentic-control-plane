@@ -20,11 +20,6 @@ from a2a.utils import new_agent_text_message, new_task
 from autogen.mcp.mcp_client import Toolkit, create_toolkit
 from mcp import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
-from opentelemetry import trace
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-from opentelemetry.sdk.resources import Resource
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
 from source_code_analyzer.config import Settings, settings
 from source_code_analyzer.event import Event
@@ -38,24 +33,17 @@ logging.basicConfig(
 )
 
 # Only enable OTEL exporter if env variable set
-if os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT", None):
+if os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT"):
+    # Tell OTEL to export traces via OTLP, and disable metrics/logs at the SDK level
     os.environ["OTEL_TRACES_EXPORTER"] = "otlp"
-    os.environ["OTEL_METRICS_EXPORTER"] = None
-    os.environ["OTEL_LOGS_EXPORTER"] = None
+    os.environ["OTEL_METRICS_EXPORTER"] = "none"
+    os.environ["OTEL_LOGS_EXPORTER"] = "none"
 
-    openlit.init()
-    resource = Resource.create(
-        {
-            "service.name": "source_code_analyzer",
-        }
+    # Ask OpenLIT itself to not send metrics
+    openlit.init(
+        application_name="source_code_analyzer",  # shows up in resource attrs
+        disable_metrics=True,  # <- key part
     )
-    provider = TracerProvider(resource=resource)
-    exporter = OTLPSpanExporter(
-        endpoint=os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT"), insecure=True
-    )
-    provider.add_span_processor(BatchSpanProcessor(exporter))
-    trace.set_tracer_provider(provider)
-    tracer = trace.get_tracer(__name__)
 
 
 def get_agent_card(host: str, port: int) -> AgentCard:
