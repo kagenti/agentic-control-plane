@@ -8,11 +8,12 @@ import sys
 import traceback
 from typing import Optional
 
-import openlit
 import uvicorn
 
 # Only enable OTEL exporter if env variable set
 if os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT"):
+    import openlit
+
     # Tell OTEL to export traces via OTLP, and disable metrics/logs at the SDK level
     os.environ["OTEL_TRACES_EXPORTER"] = "otlp"
     os.environ["OTEL_METRICS_EXPORTER"] = "none"
