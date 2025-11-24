@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 import sys
 import traceback
 from typing import Optional
@@ -19,6 +20,11 @@ from a2a.utils import new_agent_text_message, new_task
 from autogen.mcp.mcp_client import Toolkit, create_toolkit
 from mcp import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
+from opentelemetry import trace
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.resources import Resource
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
 from source_code_analyzer.config import Settings, settings
 from source_code_analyzer.event import Event
@@ -31,8 +37,21 @@ logging.basicConfig(
     format="%(levelname)s: %(message)s",
 )
 
-# Telemetry capture
-openlit.init()
+# Only enable OTEL exporter if env variable set
+if os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT", None):
+    openlit.init()
+    resource = Resource.create(
+        {
+            "service.name": "source_code_analyzer",
+        }
+    )
+    provider = TracerProvider(resource=resource)
+    exporter = OTLPSpanExporter(
+        endpoint=os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT"), insecure=True
+    )
+    provider.add_span_processor(BatchSpanProcessor(exporter))
+    trace.set_tracer_provider(provider)
+    tracer = trace.get_tracer(__name__)
 
 
 def get_agent_card(host: str, port: int) -> AgentCard:
