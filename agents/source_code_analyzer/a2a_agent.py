@@ -10,6 +10,20 @@ from typing import Optional
 
 import openlit
 import uvicorn
+
+# Only enable OTEL exporter if env variable set
+if os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT"):
+    # Tell OTEL to export traces via OTLP, and disable metrics/logs at the SDK level
+    os.environ["OTEL_TRACES_EXPORTER"] = "otlp"
+    os.environ["OTEL_METRICS_EXPORTER"] = "none"
+    os.environ["OTEL_LOGS_EXPORTER"] = "none"
+
+    # Ask OpenLIT itself to not send metrics
+    openlit.init(
+        application_name="source_code_analyzer",
+        disable_metrics=True,
+    )
+
 from a2a.server.agent_execution import AgentExecutor, RequestContext
 from a2a.server.apps import A2AStarletteApplication
 from a2a.server.events.event_queue import EventQueue
@@ -31,19 +45,6 @@ logging.basicConfig(
     stream=sys.stdout,
     format="%(levelname)s: %(message)s",
 )
-
-# Only enable OTEL exporter if env variable set
-if os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT"):
-    # Tell OTEL to export traces via OTLP, and disable metrics/logs at the SDK level
-    os.environ["OTEL_TRACES_EXPORTER"] = "otlp"
-    os.environ["OTEL_METRICS_EXPORTER"] = "none"
-    os.environ["OTEL_LOGS_EXPORTER"] = "none"
-
-    # Ask OpenLIT itself to not send metrics
-    openlit.init(
-        application_name="source_code_analyzer",  # shows up in resource attrs
-        disable_metrics=True,  # <- key part
-    )
 
 
 def get_agent_card(host: str, port: int) -> AgentCard:
