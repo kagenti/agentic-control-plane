@@ -18,6 +18,7 @@ if os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT"):
     os.environ["OTEL_TRACES_EXPORTER"] = "otlp"
     os.environ["OTEL_METRICS_EXPORTER"] = "none"
     os.environ["OTEL_LOGS_EXPORTER"] = "none"
+    os.environ["OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"] = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT")
 
     # Add resource attributes, including the Phoenix project name
     project_name = "source_code_analyzer"  # this will show up as the Phoenix project
@@ -39,6 +40,7 @@ if os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT"):
     openlit.init(
         application_name="source_code_analyzer",
         disable_metrics=True,
+        otlp_endpoint=os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT"),
     )
 
 from a2a.server.agent_execution import AgentExecutor, RequestContext
