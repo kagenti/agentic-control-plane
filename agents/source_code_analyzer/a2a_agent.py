@@ -39,6 +39,10 @@ logging.basicConfig(
 
 # Only enable OTEL exporter if env variable set
 if os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT", None):
+    os.environ["OTEL_TRACES_EXPORTER"] = "otlp"
+    os.environ["OTEL_METRICS_EXPORTER"] = None
+    os.environ["OTEL_LOGS_EXPORTER"] = None
+
     openlit.init()
     resource = Resource.create(
         {
