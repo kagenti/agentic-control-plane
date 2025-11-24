@@ -19,6 +19,22 @@ if os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT"):
     os.environ["OTEL_METRICS_EXPORTER"] = "none"
     os.environ["OTEL_LOGS_EXPORTER"] = "none"
 
+    # Add resource attributes, including the Phoenix project name
+    project_name = "source_code_analyzer"  # this will show up as the Phoenix project
+
+    # Start with our desired attrs
+    resource_parts = [
+        f"service.name={project_name}",
+        f"openinference.project.name={project_name}",
+    ]
+
+    # If the user already set OTEL_RESOURCE_ATTRIBUTES, keep those too
+    existing = os.environ.get("OTEL_RESOURCE_ATTRIBUTES")
+    if existing:
+        resource_parts.append(existing)
+
+    os.environ["OTEL_RESOURCE_ATTRIBUTES"] = ",".join(resource_parts)
+
     # Ask OpenLIT itself to not send metrics
     openlit.init(
         application_name="source_code_analyzer",
