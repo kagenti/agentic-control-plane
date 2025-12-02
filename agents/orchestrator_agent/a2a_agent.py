@@ -1,10 +1,9 @@
-"""A2A-compatible Kubernetes debugging agent entrypoint."""
+"""A2A-compatible Orchestrator Agent entrypoint."""
 
 # CRITICAL: Initialize OpenTelemetry instrumentation BEFORE importing any libraries
 # that we want to instrument (autogen, openai). This ensures the instrumentors can
 # properly patch the library classes before they are used.
-# See: https://opentelemetry.io/docs/concepts/instrumentation/libraries/
-from k8s_debug_agent.observability import (
+from orchestrator_agent.observability import (
     setup_observability,
     create_agent_span,
     trace_context_from_headers,
@@ -18,7 +17,6 @@ setup_observability()
 try:
     from openinference.instrumentation import using_attributes
 except ImportError:
-    # Fallback if openinference-instrumentation not installed
     from contextlib import nullcontext as using_attributes
 
 # Now import remaining dependencies (autogen imports happen AFTER instrumentation)
@@ -45,9 +43,9 @@ from autogen.mcp.mcp_client import Toolkit, create_toolkit
 from mcp import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
 
-from k8s_debug_agent.config import Settings, settings
-from k8s_debug_agent.event import Event
-from k8s_debug_agent.main import K8sDebugAgent
+from orchestrator_agent.config import settings
+from orchestrator_agent.event import Event
+from orchestrator_agent.main import OrchestratorAgent
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -58,22 +56,23 @@ logging.basicConfig(
 
 
 def get_agent_card(host: str, port: int):
-    """Returns the Agent Card for the Kubernetes debugging agent."""
+    """Returns the Agent Card for the Orchestrator agent."""
 
     capabilities = AgentCapabilities(streaming=True)
     skill = AgentSkill(
-        id="k8s_debug",
-        name="Kubernetes troubleshooting",
-        description="Investigate Kubernetes workloads, events, and logs to explain failures.",
-        tags=["kubernetes", "debug", "observability", "operations"],
+        id="orchestrate",
+        name="Task Orchestration",
+        description="Routes tasks to specialized agents based on their capabilities.",
+        tags=["orchestration", "routing", "coordination", "a2a"],
         examples=[
-            "Why is the payments-api deployment stuck in CrashLoopBackOff?",
-            "Summarize recent warning events in the staging namespace.",
+            "Get the weather in London and check Kubernetes pod status",
+            "List all available agents and their capabilities",
+            "Delegate this task to the most appropriate agent",
         ],
     )
     return AgentCard(
-        name="Kubernetes Debug Agent",
-        description="Diagnose Kubernetes workloads and provide actionable remediation guidance.",
+        name="Orchestrator Agent",
+        description="Intelligent task router that discovers and coordinates specialized agents via A2A protocol.",
         url=f"http://{host}:{port}/",
         version="1.0.0",
         default_input_modes=["text"],
@@ -88,12 +87,11 @@ class A2AEvent:
 
     def __init__(self, task_updater: TaskUpdater):
         self.task_updater = task_updater
-        self._completed = False  # Track if task was already completed
+        self._completed = False
 
     async def emit_event(self, message: str, final: bool = False) -> None:
         logger.info("Emitting event %s", message)
 
-        # Prevent double-completion of task
         if self._completed:
             logger.warning("Task already completed, skipping emit_event")
             return
@@ -121,44 +119,37 @@ class A2AEvent:
             )
 
 
-class KubernetesDebugExecutor(AgentExecutor):
-    """Adapter that wires the Kubernetes debug agent into the A2A runtime."""
+class OrchestratorExecutor(AgentExecutor):
+    """Adapter that wires the Orchestrator agent into the A2A runtime."""
 
     async def _run_agent(
         self,
         messages: list[dict[str, str]],
-        settings: Settings,
         event_emitter: Event,
         toolkit: Optional[Toolkit],
     ) -> None:
-        kubernetes_agent = K8sDebugAgent(
+        agent = OrchestratorAgent(
             eventer=event_emitter,
             mcp_toolkit=toolkit,
         )
-        result = await kubernetes_agent.execute(messages)
+        result = await agent.execute(messages)
         await event_emitter.emit_event(result, True)
 
     async def execute(self, context: RequestContext, event_queue: EventQueue):
-        """Executes the debugging task."""
+        """Executes the orchestration task."""
 
         user_input = [context.get_user_input()]
         task = context.current_task
         if not task:
-            task = new_task(context.message)  # type: ignore[arg-type]
+            task = new_task(context.message)
             await event_queue.enqueue_event(task)
         task_updater = TaskUpdater(event_queue, task.id, task.context_id)
         event_emitter = A2AEvent(task_updater)
         messages: list[dict[str, str]] = []
         for message in user_input:
-            messages.append(
-                {
-                    "role": "User",
-                    "content": message,
-                }
-            )
+            messages.append({"role": "User", "content": message})
 
-        # Extract headers from context for trace propagation
-        # This enables cross-agent tracing when called by another agent
+        # Extract headers for trace propagation
         headers = {}
         if hasattr(context, 'headers'):
             headers = dict(context.headers)
@@ -170,17 +161,13 @@ class KubernetesDebugExecutor(AgentExecutor):
 
         # Extract baggage from headers
         baggage_data = extract_baggage_from_headers(headers)
-
-        # Add task/context IDs from A2A if available
         if task:
             baggage_data['task_id'] = task.id
             baggage_data['context_id'] = task.context_id
-
-        # If no user_id in headers, use anonymous
         if 'user_id' not in baggage_data:
             baggage_data['user_id'] = 'anonymous'
 
-        # Prepare OpenInference attributes
+        # OpenInference attributes
         oi_session_id = task.context_id if task else baggage_data.get('context_id')
         oi_user_id = baggage_data.get('user_id', 'anonymous')
         oi_metadata = {
@@ -190,27 +177,23 @@ class KubernetesDebugExecutor(AgentExecutor):
 
         toolkit: Optional[Toolkit] = None
         try:
-            # Wrap execution with trace context for cross-agent trace propagation
             with trace_context_from_headers(headers):
-                # Set baggage context
                 set_baggage_context(baggage_data)
 
-                # using_attributes adds session.id, user.id to ALL spans in scope
-                # create_agent_span creates a root AGENT span for the conversation
                 with using_attributes(
                     session_id=oi_session_id,
                     user_id=oi_user_id,
                     metadata=oi_metadata,
                 ):
                     with create_agent_span(
-                        name="k8s_debug_agent",
+                        name="orchestrator_agent",
                         task_id=task.id if task else None,
                         context_id=task.context_id if task else None,
                         user_id=oi_user_id,
                         input_text=user_input[0] if user_input else None,
                     ):
                         if settings.MCP_URL:
-                            logging.info("Connecting to MCP server at %s", settings.MCP_URL)
+                            logging.info("Connecting to a2a-bridge at %s", settings.MCP_URL)
                             async with (
                                 streamablehttp_client(url=settings.MCP_URL) as (
                                     read_stream,
@@ -224,31 +207,20 @@ class KubernetesDebugExecutor(AgentExecutor):
                                     session=session,
                                     use_mcp_resources=False,
                                 )
-                                await self._run_agent(
-                                    messages,
-                                    settings,
-                                    event_emitter,
-                                    toolkit,
-                                )
+                                await self._run_agent(messages, event_emitter, toolkit)
                         else:
-                            await self._run_agent(
-                                messages,
-                                settings,
-                                event_emitter,
-                                toolkit,
-                            )
+                            logging.warning("No MCP_URL configured - orchestrator has no tools")
+                            await self._run_agent(messages, event_emitter, toolkit)
 
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             traceback.print_exc()
             await event_emitter.emit_event(
-                "I'm sorry I was unable to fulfill your request. "
-                f"I encountered the following exception: {exc}",
+                f"Orchestration failed: {exc}",
                 True,
             )
 
     async def cancel(self, context: RequestContext, event_queue: EventQueue) -> None:
         """Not implemented."""
-
         raise Exception("cancel not supported")
 
 
@@ -258,7 +230,7 @@ def run():
     agent_card = get_agent_card(host="0.0.0.0", port=settings.SERVICE_PORT)
 
     request_handler = DefaultRequestHandler(
-        agent_executor=KubernetesDebugExecutor(),
+        agent_executor=OrchestratorExecutor(),
         task_store=InMemoryTaskStore(),
     )
 
@@ -274,5 +246,8 @@ def run():
 
 def main():
     """Console script entrypoint for packaging compatibility."""
-
     run()
+
+
+if __name__ == "__main__":
+    main()

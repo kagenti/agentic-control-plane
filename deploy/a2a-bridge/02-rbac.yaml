@@ -31,6 +31,13 @@ roleRef:
   kind: ClusterRole
   name: a2a-bridge-role
 subjects:
+  # NOTE: Toolhive operator creates TWO ServiceAccounts:
+  # - a2a-bridge-proxy-runner: Used by the MCPServerProxy deployment (proxy)
+  # - a2a-bridge-sa: Used by the MCPServer statefulset (actual MCP server)
+  # The MCP server (statefulset) is the one that needs RBAC to access AgentCards
   - kind: ServiceAccount
-    name: a2a-bridge
+    name: a2a-bridge-proxy-runner
+    namespace: kagenti-agents
+  - kind: ServiceAccount
+    name: a2a-bridge-sa
     namespace: kagenti-agents

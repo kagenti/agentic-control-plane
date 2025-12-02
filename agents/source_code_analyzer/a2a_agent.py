@@ -22,6 +22,11 @@ from mcp.client.streamable_http import streamablehttp_client
 from source_code_analyzer.config import Settings, settings
 from source_code_analyzer.event import Event
 from source_code_analyzer.main import SourceCodeAnalyzer
+from source_code_analyzer.observability import (
+    setup_observability,
+    create_agent_span,
+    trace_context_from_headers,
+)
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -29,6 +34,9 @@ logging.basicConfig(
     stream=sys.stdout,
     format="%(levelname)s: %(message)s",
 )
+
+# Initialize OpenTelemetry observability with Phoenix integration
+setup_observability()
 
 
 def get_agent_card(host: str, port: int) -> AgentCard:
@@ -58,13 +66,28 @@ def get_agent_card(host: str, port: int) -> AgentCard:
 class A2AEvent(Event):
     def __init__(self, task_updater: TaskUpdater):
         self.task_updater = task_updater
+        self._completed = False  # Track if task was already completed
 
     async def emit_event(self, message: str, final: bool = False) -> None:
         logger.info("event: %s", message)
+
+        # Prevent double-completion of task
+        if self._completed:
+            logger.warning("Task already completed, skipping emit_event")
+            return
+
         if final:
             parts = [TextPart(text=message)]
-            await self.task_updater.add_artifact(parts)
-            await self.task_updater.complete()
+            try:
+                await self.task_updater.add_artifact(parts)
+                await self.task_updater.complete()
+                self._completed = True
+            except RuntimeError as e:
+                if "terminal state" in str(e):
+                    logger.warning("Task already in terminal state: %s", e)
+                    self._completed = True
+                else:
+                    raise
         else:
             await self.task_updater.update_status(
                 TaskState.working,
@@ -111,26 +134,40 @@ class SourceAnalyzerExecutor(AgentExecutor):
                 }
             )
 
+        # Extract headers from context for trace propagation
+        trace_headers = {}
+        if hasattr(context, 'message') and context.message:
+            if hasattr(context.message, 'metadata') and context.message.metadata:
+                trace_headers = context.message.metadata.get('headers', {})
+
         toolkit: Optional[Toolkit] = None
         try:
-            if settings.MCP_URL:
-                logger.info("Connecting to MCP server at %s", settings.MCP_URL)
-                headers = {"X-MCP-Readonly": "true"}
-                if settings.MCP_TOKEN:
-                    headers["Authorization"] = f"Bearer {settings.MCP_TOKEN}"
-                async with (
-                    streamablehttp_client(url=settings.MCP_URL, headers=headers or None) as (
-                        read_stream,
-                        write_stream,
-                        _,
-                    ),
-                    ClientSession(read_stream, write_stream) as session,
+            # Wrap execution with trace context for cross-agent trace propagation
+            with trace_context_from_headers(trace_headers):
+                with create_agent_span(
+                    name="source_code_analyzer",
+                    task_id=task.id if task else None,
+                    context_id=task.context_id if task else None,
+                    input_text=user_input[0] if user_input else None,
                 ):
-                    await session.initialize()
-                    toolkit = await create_toolkit(session=session, use_mcp_resources=False)
-                    await self._run_agent(messages, settings, event_emitter, toolkit)
-            else:
-                await self._run_agent(messages, settings, event_emitter, None)
+                    if settings.MCP_URL:
+                        logger.info("Connecting to MCP server at %s", settings.MCP_URL)
+                        headers = {"X-MCP-Readonly": "true"}
+                        if settings.MCP_TOKEN:
+                            headers["Authorization"] = f"Bearer {settings.MCP_TOKEN}"
+                        async with (
+                            streamablehttp_client(url=settings.MCP_URL, headers=headers or None) as (
+                                read_stream,
+                                write_stream,
+                                _,
+                            ),
+                            ClientSession(read_stream, write_stream) as session,
+                        ):
+                            await session.initialize()
+                            toolkit = await create_toolkit(session=session, use_mcp_resources=False)
+                            await self._run_agent(messages, settings, event_emitter, toolkit)
+                    else:
+                        await self._run_agent(messages, settings, event_emitter, None)
 
         except Exception as exc:  # noqa: BLE001
             traceback.print_exc()

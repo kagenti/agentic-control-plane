@@ -60,6 +60,19 @@ spec:
               value: "http://k8s-readonly-server.kagenti-agents.svc.cluster.local:8080/mcp"
             - name: XDG_CACHE_HOME
               value: "/tmp/.cache"
+            # OpenTelemetry / Phoenix Configuration
+            - name: OTEL_SERVICE_NAME
+              value: "k8s-debug-agent"
+            - name: K8S_NAMESPACE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-collector.kagenti-system.svc.cluster.local:8335"
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              value: "http/protobuf"
+            - name: PHOENIX_PROJECT_NAME
+              value: "kagenti-agents"
           resources:
             limits:
               cpu: "1000m"

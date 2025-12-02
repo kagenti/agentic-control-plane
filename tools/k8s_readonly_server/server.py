@@ -45,6 +45,36 @@ def validate_namespace(namespace: str) -> None:
 
 
 @mcp.tool()
+def get_namespaces() -> str:
+    """
+    List all namespaces in the cluster.
+
+    Returns:
+        JSON array of namespace information
+    """
+    try:
+        namespaces = v1.list_namespace()
+
+        namespace_list = []
+        for ns in namespaces.items:
+            namespace_info = {
+                "name": ns.metadata.name,
+                "status": ns.status.phase,
+                "labels": ns.metadata.labels or {},
+                "creation_timestamp": str(ns.metadata.creation_timestamp),
+            }
+            namespace_list.append(namespace_info)
+
+        return (
+            f"Found {len(namespace_list)} namespace(s) in the cluster:\n\n"
+            + str(namespace_list)
+        )
+
+    except ApiException as e:
+        raise Exception(f"Kubernetes API error: {e.reason}")
+
+
+@mcp.tool()
 def get_pods(namespace: str, label_selector: Optional[str] = None) -> str:
     """
     List pods in a namespace.

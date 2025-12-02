@@ -1,0 +1,29 @@
+# A2A SDK
+a2a-sdk[all,http-server]>=0.2.5
+
+# AutoGen for agent orchestration (ag2 provides 'autogen' module namespace)
+ag2[openai,mcp]==0.10.2
+
+# MCP client for a2a-bridge
+mcp>=1.0.0
+
+# OpenAI SDK (used by AutoGen)
+openai>=1.0.0
+
+# OpenTelemetry
+opentelemetry-api>=1.20.0
+opentelemetry-sdk>=1.20.0
+opentelemetry-exporter-otlp>=1.20.0
+
+# OpenInference for AI observability
+openinference-instrumentation>=0.1.0
+openinference-instrumentation-openai>=0.1.0
+openinference-instrumentation-autogen>=0.1.10
+openinference-semantic-conventions>=0.1.0
+
+# Configuration
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+
+# Server
+uvicorn>=0.27.0

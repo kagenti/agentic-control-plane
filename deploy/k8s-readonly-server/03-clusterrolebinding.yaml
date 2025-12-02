@@ -7,8 +7,9 @@ metadata:
     app.kubernetes.io/component: mcp-tool
     app.kubernetes.io/part-of: kagenti
 subjects:
+  # NOTE: MCPServer (Toolhive) operator creates SA with suffix "-sa"
   - kind: ServiceAccount
-    name: k8s-readonly-server
+    name: k8s-readonly-server-sa
     namespace: kagenti-agents
 roleRef:
   kind: ClusterRole
