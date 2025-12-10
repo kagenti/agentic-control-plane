@@ -8,8 +8,11 @@ dependencies = [
     "a2a-sdk[all,http-server]>=0.2.5",
     "ag2[openai,mcp]==0.10.2",
     "openai>=1.0.0",
-    "openinference-instrumentation-autogen>=0.1.10",
-    "openinference-instrumentation-openai>=0.1.0",
+    # OTEL GenAI Auto-Instrumentation (uses gen_ai.* semantic conventions)
+    "opentelemetry-instrumentation-openai-v2>=2.0.0",
+    # OpenInference SpanProcessor for Phoenix compatibility (converts gen_ai.* to OpenInference)
+    "openinference-instrumentation-openllmetry>=0.1.0",
+    # OpenTelemetry Core
     "opentelemetry-api>=1.20.0",
     "opentelemetry-exporter-otlp>=1.20.0",
     "opentelemetry-sdk>=1.20.0",
