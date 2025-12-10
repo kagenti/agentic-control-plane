@@ -6,7 +6,8 @@ WORKDIR /app
 COPY . /app/
 
 # Install the package with dependencies
-RUN pip install --no-cache-dir .
+# --pre flag is required for pre-release packages like opentelemetry-instrumentation-openai-v2
+RUN pip install --no-cache-dir --pre .
 
 # Set proper permissions for OpenShift compatibility
 RUN chmod -R g+rwX /app && \

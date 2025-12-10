@@ -3,8 +3,9 @@ FROM python:3.12-slim
 WORKDIR /app
 
 # Copy requirements and install dependencies
+# --pre flag is required for pre-release packages like opentelemetry-instrumentation-openai-v2
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --pre -r requirements.txt
 
 # Copy application code
 COPY orchestrator_agent/ ./orchestrator_agent/
