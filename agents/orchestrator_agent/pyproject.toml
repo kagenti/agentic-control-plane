@@ -9,7 +9,7 @@ dependencies = [
     "ag2[openai,mcp]==0.10.2",
     "openai>=1.0.0",
     # OTEL GenAI Auto-Instrumentation (uses gen_ai.* semantic conventions)
-    "opentelemetry-instrumentation-openai-v2>=2.0.0",
+    "opentelemetry-instrumentation-openai-v2>=2.0b0",
     # OpenInference SpanProcessor for Phoenix compatibility (converts gen_ai.* to OpenInference)
     "openinference-instrumentation-openllmetry>=0.1.0",
     # OpenTelemetry Core
