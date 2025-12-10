@@ -192,7 +192,7 @@ def setup_observability(config: Optional[ObservabilityConfig] = None) -> TracerP
     # Auto-instrument OpenAI with OTEL GenAI semantic conventions
     # This creates spans with gen_ai.* attributes that Phoenix can understand via the SpanProcessor
     try:
-        from opentelemetry.instrumentation.openai import OpenAIInstrumentor
+        from opentelemetry.instrumentation.openai_v2 import OpenAIInstrumentor
         OpenAIInstrumentor().instrument(tracer_provider=tracer_provider)
         logger.info("OpenAI SDK instrumented with OTEL GenAI semantic conventions")
     except ImportError:
