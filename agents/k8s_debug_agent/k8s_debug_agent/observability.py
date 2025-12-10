@@ -198,6 +198,15 @@ def setup_observability(config: Optional[ObservabilityConfig] = None) -> TracerP
     except ImportError:
         logger.warning("opentelemetry-instrumentation-openai-v2 not installed, skipping OpenAI instrumentation")
 
+    # Instrument asyncio to ensure context propagation across async tasks
+    # This is critical for AutoGen which uses asyncio.create_task internally
+    try:
+        from opentelemetry.instrumentation.asyncio import AsyncioInstrumentor
+        AsyncioInstrumentor().instrument(tracer_provider=tracer_provider)
+        logger.info("Asyncio instrumented for context propagation")
+    except ImportError:
+        logger.warning("opentelemetry-instrumentation-asyncio not installed, context may not propagate in async tasks")
+
     # Configure W3C Trace Context and Baggage propagators for distributed tracing
     set_global_textmap(CompositePropagator([
         TraceContextTextMapPropagator(),
