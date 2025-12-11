@@ -207,6 +207,19 @@ def setup_observability(config: Optional[ObservabilityConfig] = None) -> TracerP
     except ImportError:
         logger.warning("opentelemetry-instrumentation-asyncio not installed, context may not propagate in async tasks")
 
+    # Instrument httpx for HTTP-level context propagation
+    # This is CRITICAL for AutoGen/OpenAI because:
+    # 1. OpenAI SDK uses httpx as its HTTP client
+    # 2. AutoGen crosses async/sync boundaries (ThreadPoolExecutor), breaking contextvars
+    # 3. httpx instrumentation captures context at HTTP layer where it IS preserved
+    # 4. This ensures LLM spans become children of the agent span
+    try:
+        from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
+        HTTPXClientInstrumentor().instrument(tracer_provider=tracer_provider)
+        logger.info("HTTPX instrumented for HTTP-level context propagation")
+    except ImportError:
+        logger.warning("opentelemetry-instrumentation-httpx not installed, LLM spans may be disconnected")
+
     # Configure W3C Trace Context and Baggage propagators for distributed tracing
     set_global_textmap(CompositePropagator([
         TraceContextTextMapPropagator(),

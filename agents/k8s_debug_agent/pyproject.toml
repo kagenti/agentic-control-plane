@@ -18,6 +18,9 @@ dependencies = [
     "opentelemetry-exporter-otlp-proto-grpc>=1.20.0",
     # Asyncio instrumentation for context propagation across async tasks
     "opentelemetry-instrumentation-asyncio>=0.49b0",
+    # HTTPX instrumentation - captures HTTP-level context that survives async/thread boundaries
+    # This is critical for context propagation when frameworks (like AutoGen) cross async/sync boundaries
+    "opentelemetry-instrumentation-httpx>=0.49b0",
 ]
 
 [project.optional-dependencies]
