@@ -8,9 +8,8 @@ dependencies = [
     "ag2[openai,mcp]>=0.10.0",
     "a2a-sdk>=0.3.10",
     # OTEL GenAI Auto-Instrumentation (uses gen_ai.* semantic conventions)
+    # Note: GenAI to OpenInference conversion is handled by OTEL Collector
     "opentelemetry-instrumentation-openai-v2>=2.0b0",
-    # OpenInference SpanProcessor for Phoenix compatibility (converts gen_ai.* to OpenInference)
-    "openinference-instrumentation-openllmetry>=0.1.0",
     # OpenTelemetry Core
     "opentelemetry-api>=1.20.0",
     "opentelemetry-sdk>=1.20.0",

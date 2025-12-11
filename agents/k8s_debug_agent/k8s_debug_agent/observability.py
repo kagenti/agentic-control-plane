@@ -3,8 +3,10 @@ OpenTelemetry observability setup for K8s Debug Agent.
 
 This module provides:
 - Auto-instrumentation with OTEL GenAI semantic conventions (gen_ai.*)
-- OpenInferenceSpanProcessor for Phoenix compatibility
 - Cross-agent trace propagation via W3C Trace Context + Baggage
+
+The OTEL Collector handles conversion from GenAI (gen_ai.*) to OpenInference
+(llm.*, openinference.span.kind) for Phoenix compatibility.
 
 Key Features:
 - `setup_observability`: Configure OTEL with GenAI instrumentation
@@ -141,9 +143,12 @@ def setup_observability(config: Optional[ObservabilityConfig] = None) -> TracerP
 
     This function:
     1. Creates OTEL tracer provider with proper resource attributes
-    2. Adds OpenInferenceSpanProcessor for Phoenix compatibility
-    3. Configures OTLP exporter (HTTP or gRPC)
-    4. Instruments OpenAI SDK with OTEL GenAI semantic conventions
+    2. Configures OTLP exporter (HTTP or gRPC) to send traces to collector
+    3. Instruments OpenAI SDK with OTEL GenAI semantic conventions (gen_ai.*)
+    4. Instruments asyncio for context propagation across async tasks
+
+    The OTEL Collector handles conversion from GenAI to OpenInference format
+    for Phoenix compatibility using the transform/genai_to_openinference processor.
 
     IMPORTANT: Call this BEFORE importing openai or autogen to ensure
     proper instrumentation.
@@ -173,14 +178,9 @@ def setup_observability(config: Optional[ObservabilityConfig] = None) -> TracerP
     # Create tracer provider
     tracer_provider = TracerProvider(resource=resource)
 
-    # Add OpenInferenceSpanProcessor FIRST
-    # This converts gen_ai.* attributes to OpenInference format for Phoenix
-    try:
-        from openinference.instrumentation.openllmetry import OpenInferenceSpanProcessor
-        tracer_provider.add_span_processor(OpenInferenceSpanProcessor())
-        logger.info("OpenInferenceSpanProcessor added for Phoenix compatibility")
-    except ImportError:
-        logger.warning("openinference-instrumentation-openllmetry not installed, skipping Phoenix conversion")
+    # Note: GenAI to OpenInference conversion is handled by the OTEL Collector
+    # using the transform/genai_to_openinference processor. This keeps agent code
+    # simple and allows centralized configuration of the conversion logic.
 
     # Add OTLP exporter
     otlp_exporter = _get_otlp_exporter(config.otlp_endpoint, config.otlp_protocol)

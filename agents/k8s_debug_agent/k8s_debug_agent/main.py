@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from typing import Any, List
 
 from autogen.mcp.mcp_client import Toolkit
+from opentelemetry import trace
 
 from k8s_debug_agent.agents import Agents
 from k8s_debug_agent.config import Settings
@@ -140,15 +141,36 @@ class K8sDebugAgent:
         max_turns: int | None = None,
         **kwargs,
     ):
-        try:
-            return await self.agents.user_proxy.a_initiate_chat(
-                recipient=recipient,
-                message=message,
-                max_turns=max_turns,
-                **kwargs,
-            )
-        except Exception as exc:  # noqa: BLE001
-            raise AgentWorkflowError(f"{description} failed: {exc}") from exc
+        """
+        Invoke an AutoGen agent with proper OpenTelemetry context propagation.
+
+        We create an explicit child span to serve as parent for any OpenAI
+        instrumentation spans created by AutoGen internally.
+        """
+        tracer = trace.get_tracer("k8s-debug-agent")
+
+        # Create a child span for this agent invocation
+        # This ensures OpenAI auto-instrumentation spans have a proper parent
+        with tracer.start_as_current_span(
+            f"autogen.{recipient.name}",
+            attributes={
+                "gen_ai.operation.name": "chain",
+                "autogen.agent.name": recipient.name,
+                "autogen.description": description,
+            },
+        ) as span:
+            try:
+                result = await self.agents.user_proxy.a_initiate_chat(
+                    recipient=recipient,
+                    message=message,
+                    max_turns=max_turns,
+                    **kwargs,
+                )
+                return result
+            except Exception as exc:  # noqa: BLE001
+                span.record_exception(exc)
+                span.set_status(trace.StatusCode.ERROR, str(exc))
+                raise AgentWorkflowError(f"{description} failed: {exc}") from exc
 
     def _extract_text_response(self, response, description: str) -> str:
         chat_history = getattr(response, "chat_history", None)
