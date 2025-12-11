@@ -19,7 +19,13 @@ try:
     from openinference.instrumentation import using_attributes
 except ImportError:
     # Fallback if openinference-instrumentation not installed
-    from contextlib import nullcontext as using_attributes
+    # nullcontext doesn't accept keyword arguments, so we need a custom fallback
+    from contextlib import contextmanager
+
+    @contextmanager
+    def using_attributes(**kwargs):
+        """No-op context manager that accepts and ignores keyword arguments."""
+        yield
 
 # Now import remaining dependencies (autogen imports happen AFTER instrumentation)
 import logging
