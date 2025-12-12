@@ -189,14 +189,16 @@ def setup_observability(config: Optional[ObservabilityConfig] = None) -> TracerP
     # Set global tracer provider
     trace.set_tracer_provider(tracer_provider)
 
-    # Auto-instrument OpenAI with OTEL GenAI semantic conventions
-    # This creates spans with gen_ai.* attributes that Phoenix can understand via the SpanProcessor
-    try:
-        from opentelemetry.instrumentation.openai_v2 import OpenAIInstrumentor
-        OpenAIInstrumentor().instrument(tracer_provider=tracer_provider)
-        logger.info("OpenAI SDK instrumented with OTEL GenAI semantic conventions")
-    except ImportError:
-        logger.warning("opentelemetry-instrumentation-openai-v2 not installed, skipping OpenAI instrumentation")
+    # NOTE: We intentionally DO NOT use opentelemetry-instrumentation-openai-v2 here.
+    # The OpenAI SDK instrumentation creates LLM spans that break context propagation
+    # when AutoGen crosses async/sync boundaries (ThreadPoolExecutor).
+    #
+    # Instead, we use httpx instrumentation (below) which:
+    # 1. Captures HTTP calls to api.openai.com with proper parent context
+    # 2. Creates spans that are properly nested under the agent span
+    #
+    # The OTEL Collector can then enrich these HTTP spans with LLM attributes
+    # using transform rules if needed for Phoenix visualization.
 
     # Instrument asyncio to ensure context propagation across async tasks
     # This is critical for AutoGen which uses asyncio.create_task internally
