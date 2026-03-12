@@ -1,0 +1,12 @@
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tools/a2a_bridge_server/tests",
+    "agents/k8s_debug_agent/tests",
+]
