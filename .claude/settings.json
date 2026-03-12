@@ -11,7 +11,8 @@
       "Bash(make lint:*)",
       "Bash(make fmt:*)",
       "Bash(pre-commit run:*)",
-      "Bash(uv run:*)",
+      "Bash(uv run python a2a_agent.py:*)",
+      "Bash(uv run python server.py:*)",
       "Bash(kubectl get:*)",
       "Bash(kubectl describe:*)",
       "Bash(kubectl logs:*)"
