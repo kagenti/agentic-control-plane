@@ -13,6 +13,7 @@ dependencies = [
 dev = [
     "ruff>=0.6.4",
     "pre-commit>=3.7.1",
+    "pytest>=8.0",
 ]
 
 [project.scripts]
