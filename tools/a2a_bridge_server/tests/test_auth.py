@@ -23,7 +23,7 @@ def test_create_k8s_client_uses_token_when_set(mock_from_token):
     mock_from_token.return_value = MagicMock()
     auth.set_auth_context("my-jwt-token")
 
-    client = auth.create_k8s_client()
+    auth.create_k8s_client()
 
     mock_from_token.assert_called_once_with("my-jwt-token")
     auth.set_auth_context(None)  # cleanup
@@ -35,7 +35,7 @@ def test_create_k8s_client_falls_back_to_kubeconfig(mock_from_kube):
     mock_from_kube.return_value = MagicMock()
     auth.set_auth_context(None)
 
-    client = auth.create_k8s_client(token_auth_only=False)
+    auth.create_k8s_client(token_auth_only=False)
 
     mock_from_kube.assert_called_once()
 

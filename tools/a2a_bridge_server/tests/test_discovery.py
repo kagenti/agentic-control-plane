@@ -70,7 +70,7 @@ SAMPLE_CARD_CR = {
 def test_get_agents_data_parses_card_fields(mock_discover):
     mock_discover.return_value = [SAMPLE_CARD_CR]
 
-    agents, scope_msg = discovery.get_agents_data(namespace="kagenti-system")
+    agents, _ = discovery.get_agents_data(namespace="kagenti-system")
 
     assert len(agents) == 1
     agent = agents[0]
