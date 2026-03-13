@@ -1,0 +1,14 @@
+name: Close Stale Issues and PRs
+
+on:
+  schedule:
+    - cron: "0 6 * * *"  # Daily 6 AM UTC
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  stale:
+    uses: kagenti/.github/.github/workflows/stale.yaml@171594de65b6274b547f686b7f68cafb82f11090  # main

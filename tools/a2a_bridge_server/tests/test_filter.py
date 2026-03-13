@@ -1,15 +1,8 @@
 """Test agent filtering logic."""
 
-import pytest
 from unittest.mock import patch
 
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
 from lib import discovery
-
 
 # Sample agent data for testing
 SAMPLE_AGENTS = [
@@ -22,13 +15,11 @@ SAMPLE_AGENTS = [
         "url": "http://weather.example.com",
         "protocol": "a2a",
         "capabilities": {},
-        "skills": [
-            {"name": "Weather Lookup", "description": "Get weather forecasts"}
-        ],
+        "skills": [{"name": "Weather Lookup", "description": "Get weather forecasts"}],
         "supports_authenticated_extended_card": False,
         "sync_status": "True",
         "sync_message": "OK",
-        "last_sync_time": "2025-10-29T10:00:00Z"
+        "last_sync_time": "2025-10-29T10:00:00Z",
     },
     {
         "agentcard_name": "database-agent-card",
@@ -41,12 +32,12 @@ SAMPLE_AGENTS = [
         "capabilities": {},
         "skills": [
             {"name": "SQL Query", "description": "Execute SQL queries"},
-            {"name": "Schema Explorer", "description": "Browse database schema"}
+            {"name": "Schema Explorer", "description": "Browse database schema"},
         ],
         "supports_authenticated_extended_card": False,
         "sync_status": "True",
         "sync_message": "OK",
-        "last_sync_time": "2025-10-29T10:00:00Z"
+        "last_sync_time": "2025-10-29T10:00:00Z",
     },
     {
         "agentcard_name": "chat-agent-card",
@@ -57,18 +48,16 @@ SAMPLE_AGENTS = [
         "url": "http://chat.example.com",
         "protocol": "a2a",
         "capabilities": {},
-        "skills": [
-            {"name": "Conversation", "description": "Natural language chat"}
-        ],
+        "skills": [{"name": "Conversation", "description": "Natural language chat"}],
         "supports_authenticated_extended_card": False,
         "sync_status": "True",
         "sync_message": "OK",
-        "last_sync_time": "2025-10-29T10:00:00Z"
-    }
+        "last_sync_time": "2025-10-29T10:00:00Z",
+    },
 ]
 
 
-@patch('lib.discovery.get_agents_data')
+@patch("lib.discovery.get_agents_data")
 def test_no_filter_returns_all_agents(mock_get_agents_data):
     """Test that without a filter, all agents are returned."""
     mock_get_agents_data.return_value = (SAMPLE_AGENTS, "namespace: kagenti")
@@ -82,7 +71,7 @@ def test_no_filter_returns_all_agents(mock_get_agents_data):
     assert "Total: 3 agent(s)" in result
 
 
-@patch('lib.discovery.get_agents_data')
+@patch("lib.discovery.get_agents_data")
 def test_filter_returns_only_matches(mock_get_agents_data):
     """Test that filter returns only matching agents."""
     mock_get_agents_data.return_value = (SAMPLE_AGENTS, "namespace: kagenti")
@@ -98,7 +87,7 @@ def test_filter_returns_only_matches(mock_get_agents_data):
     assert "Filter: 'weather'" in result
 
 
-@patch('lib.discovery.get_agents_data')
+@patch("lib.discovery.get_agents_data")
 def test_filter_is_case_insensitive(mock_get_agents_data):
     """Test that filter is case-insensitive."""
     mock_get_agents_data.return_value = (SAMPLE_AGENTS, "namespace: kagenti")
@@ -114,7 +103,7 @@ def test_filter_is_case_insensitive(mock_get_agents_data):
     assert "Weather Assistant" in result3
 
 
-@patch('lib.discovery.get_agents_data')
+@patch("lib.discovery.get_agents_data")
 def test_filter_searches_agent_name(mock_get_agents_data):
     """Test that filter searches in agent name."""
     mock_get_agents_data.return_value = (SAMPLE_AGENTS, "namespace: kagenti")
@@ -125,7 +114,7 @@ def test_filter_searches_agent_name(mock_get_agents_data):
     assert "Total: 1 agent(s)" in result
 
 
-@patch('lib.discovery.get_agents_data')
+@patch("lib.discovery.get_agents_data")
 def test_filter_searches_description(mock_get_agents_data):
     """Test that filter searches in description."""
     mock_get_agents_data.return_value = (SAMPLE_AGENTS, "namespace: kagenti")
@@ -136,7 +125,7 @@ def test_filter_searches_description(mock_get_agents_data):
     assert "Total: 1 agent(s)" in result
 
 
-@patch('lib.discovery.get_agents_data')
+@patch("lib.discovery.get_agents_data")
 def test_filter_searches_skill_names(mock_get_agents_data):
     """Test that filter searches in skill names."""
     mock_get_agents_data.return_value = (SAMPLE_AGENTS, "namespace: kagenti")
@@ -147,7 +136,7 @@ def test_filter_searches_skill_names(mock_get_agents_data):
     assert "Total: 1 agent(s)" in result
 
 
-@patch('lib.discovery.get_agents_data')
+@patch("lib.discovery.get_agents_data")
 def test_filter_searches_skill_descriptions(mock_get_agents_data):
     """Test that filter searches in skill descriptions."""
     mock_get_agents_data.return_value = (SAMPLE_AGENTS, "namespace: kagenti")
@@ -158,7 +147,7 @@ def test_filter_searches_skill_descriptions(mock_get_agents_data):
     assert "Total: 1 agent(s)" in result
 
 
-@patch('lib.discovery.get_agents_data')
+@patch("lib.discovery.get_agents_data")
 def test_filter_with_no_matches_returns_nothing(mock_get_agents_data):
     """Test that filter with no matches returns appropriate message."""
     mock_get_agents_data.return_value = (SAMPLE_AGENTS, "namespace: kagenti")
@@ -172,7 +161,7 @@ def test_filter_with_no_matches_returns_nothing(mock_get_agents_data):
     assert "Chat Bot" not in result
 
 
-@patch('lib.discovery.get_agents_data')
+@patch("lib.discovery.get_agents_data")
 def test_filter_matches_multiple_agents(mock_get_agents_data):
     """Test that filter can match multiple agents."""
     mock_get_agents_data.return_value = (SAMPLE_AGENTS, "namespace: kagenti")

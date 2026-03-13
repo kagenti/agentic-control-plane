@@ -1,11 +1,8 @@
 """Tests for authentication context management and K8s client creation."""
 
-import sys
-from pathlib import Path
-from unittest.mock import patch, MagicMock
-import pytest
+from unittest.mock import MagicMock, patch
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
+import pytest
 
 from lib import auth
 
