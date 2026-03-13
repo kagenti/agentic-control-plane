@@ -45,3 +45,31 @@ agentic-control-plane/
 ## Architecture
 
 The supervisor (Claude Code or in-cluster agent) discovers running agents via the A2A bridge, which reads AgentCard CRDs created by the kagenti-operator. Agents expose skills that the supervisor delegates to for K8s operations and code analysis.
+
+## Claude Code Skills
+
+Skills in `.claude/skills/` provide guided workflows for working in this repo:
+
+| Skill | Description |
+|-------|-------------|
+| `ci-status` | Check CI pipeline status and PR checks |
+| `rca-ci` | Root cause analysis from CI logs |
+| `commit` | Commit message conventions |
+
+## Orchestration
+
+This repo includes orchestrate skills to enhance related repositories:
+
+| Skill | Description |
+|-------|-------------|
+| `orchestrate` | Router — run `/orchestrate <repo-url>` to start |
+| `orchestrate:scan` | Assess a repo's tech stack, CI maturity, and gaps |
+| `orchestrate:plan` | Create a phased enhancement plan |
+| `orchestrate:precommit` | Add pre-commit hooks and code quality baseline |
+| `orchestrate:tests` | Add test infrastructure and initial coverage |
+| `orchestrate:ci` | Add CI workflows (lint, test, build, security, dependabot) |
+| `orchestrate:security` | Add security governance files |
+| `orchestrate:replicate` | Bootstrap orchestrate skills into a target repo |
+| `skills:scan` | Discover and audit skills in a repo |
+| `skills:write` | Author new skills |
+| `skills:validate` | Validate skill structure and frontmatter |
