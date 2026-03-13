@@ -1,0 +1,23 @@
+# CODEOWNERS — reviewers are automatically requested on pull requests.
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default: maintainers review everything
+* @kagenti/maintainers
+
+# CI / platform tooling
+.github/ @kagenti/maintainers
+Makefile @kagenti/maintainers
+pyproject.toml @kagenti/maintainers
+
+# Agents
+agents/ @kagenti/maintainers
+
+# Tools / bridge server
+tools/ @kagenti/maintainers
+
+# Kubernetes manifests
+deploy/ @kagenti/maintainers
+
+# Documentation
+*.md @kagenti/maintainers
+docs/ @kagenti/maintainers
