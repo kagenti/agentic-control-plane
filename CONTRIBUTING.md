@@ -7,7 +7,7 @@ environment, run tests, and submit pull requests.
 
 ### Prerequisites
 
-- Python 3.10+ (3.11 for `k8s_debug_agent`, 3.12 for `a2a_bridge_server`)
+- Python 3.10+ (`k8s_debug_agent` requires ≥3.10; `a2a_bridge_server` requires ≥3.12; CI tests with 3.11 and 3.12 respectively)
 - [`uv`](https://docs.astral.sh/uv/) — package and virtualenv manager
 - [`pre-commit`](https://pre-commit.com/) — local quality gates
 
@@ -21,12 +21,9 @@ cd agentic-control-plane
 # Install pre-commit hooks (run once)
 pre-commit install
 
-# Install dependencies for a specific subproject
-cd tools/a2a_bridge_server
-uv sync --frozen --extra dev
-
-cd agents/k8s_debug_agent
-uv sync --frozen --extra dev
+# Install dependencies for a specific subproject (subshells keep you at repo root)
+(cd tools/a2a_bridge_server && uv sync --frozen --extra dev)
+(cd agents/k8s_debug_agent && uv sync --frozen --extra dev)
 ```
 
 ## Project Structure
@@ -48,12 +45,10 @@ Each subproject has its own test suite managed with `uv`:
 
 ```bash
 # a2a bridge server
-cd tools/a2a_bridge_server
-uv run pytest tests/ -v
+(cd tools/a2a_bridge_server && uv run pytest tests/ -v)
 
 # k8s debug agent
-cd agents/k8s_debug_agent
-uv run pytest tests/ -v
+(cd agents/k8s_debug_agent && uv run pytest tests/ -v)
 ```
 
 ## Running Lint and Format Checks
@@ -81,8 +76,8 @@ make fmt
 3. **Run checks locally** before pushing:
    ```bash
    pre-commit run --all-files
-   cd tools/a2a_bridge_server && uv run pytest tests/ -v
-   cd agents/k8s_debug_agent && uv run pytest tests/ -v
+   (cd tools/a2a_bridge_server && uv run pytest tests/ -v)
+   (cd agents/k8s_debug_agent && uv run pytest tests/ -v)
    ```
 
 4. **Commit** with a DCO sign-off (required — see below):
