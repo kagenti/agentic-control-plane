@@ -1,25 +1,30 @@
 """A2A messaging functionality for sending messages to agents."""
 
 import json
-import httpx
-from typing import Optional
 import logging
+import os
+from typing import Optional
 from uuid import uuid4
 
+import httpx
 from a2a.client import A2ACardResolver, A2AClient
 from a2a.types import (
     AgentCard,
+    MessageSendParams,
     SendMessageRequest,
     SendStreamingMessageRequest,
-    MessageSendParams,
 )
-from . import discovery
 
+from . import discovery
 
 logger = logging.getLogger(__name__)
 
 
 EXTENDED_AGENT_CARD_PATH = "/.well-known/agent.json"
+
+# TLS verification is enabled by default. Set AGENT_TLS_VERIFY=false to disable
+# (only for development/in-cluster with self-signed certs).
+_TLS_VERIFY: bool = os.getenv("AGENT_TLS_VERIFY", "true").lower() != "false"
 
 
 def _get_crd_url_for_agent(agent_url: str) -> Optional[str]:
@@ -78,7 +83,7 @@ async def send_message_to_agent(
     Returns:
         JSON response from the agent
     """
-    async with httpx.AsyncClient(verify=False, timeout=120) as httpx_client:  # nosec B501
+    async with httpx.AsyncClient(verify=_TLS_VERIFY, timeout=120) as httpx_client:
         # Fetch agent card from HTTP endpoint
         resolver = A2ACardResolver(
             httpx_client=httpx_client,
@@ -171,7 +176,7 @@ async def send_streaming_message_to_agent(
     Returns:
         All streaming response chunks from the agent as JSON
     """
-    async with httpx.AsyncClient(verify=False, timeout=120) as httpx_client:  # nosec B501
+    async with httpx.AsyncClient(verify=_TLS_VERIFY, timeout=120) as httpx_client:
         import logging
         logger = logging.getLogger(__name__)
 

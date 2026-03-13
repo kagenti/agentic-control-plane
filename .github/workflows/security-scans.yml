@@ -29,10 +29,11 @@ jobs:
 
       - name: Run Bandit (HIGH severity — blocking)
         run: |
-          HIGH=$(bandit -r agents/ tools/ \
+          BANDIT_OUT=$(bandit -r agents/ tools/ \
             --severity-level high --confidence-level high \
             --exclude '**/tests/*' \
-            -f json 2>/dev/null | jq '.results | length' 2>/dev/null || echo "0")
+            -f json 2>/dev/null)
+          HIGH=$(echo "$BANDIT_OUT" | jq '.results | length')
           if [ "$HIGH" -gt 0 ]; then
             bandit -r agents/ tools/ \
               --severity-level high --confidence-level high \
@@ -145,7 +146,10 @@ jobs:
 
       - name: Check for unpinned GitHub Actions
         run: |
-          UNPINNED=$(grep -rh "uses:" .github/workflows/ | grep -v "#" \
+          # Strip full-line comments, then remove inline comments before checking refs
+          UNPINNED=$(grep -rh "uses:" .github/workflows/ \
+            | grep -vE '^\s*#' \
+            | sed 's/[[:space:]]*#.*//' \
             | grep -E "@v[0-9]|@main|@master" | sort -u || true)
           if [ -n "$UNPINNED" ]; then
             echo "::warning::Found actions not pinned to SHA commits:"

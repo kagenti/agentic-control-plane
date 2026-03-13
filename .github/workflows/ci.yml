@@ -21,8 +21,8 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install uv and ruff
-        run: pip install uv ruff pre-commit
+      - name: Install ruff
+        run: pip install ruff
 
       - name: Ruff lint (test code)
         # Lint only the test directories we own; pre-existing source code is

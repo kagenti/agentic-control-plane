@@ -4,6 +4,7 @@ import json
 import os
 
 import pytest
+from pydantic_settings import SettingsError
 
 from k8s_debug_agent.config import Settings
 
@@ -33,9 +34,13 @@ def test_extra_headers_valid_json(monkeypatch):
 
 
 def test_extra_headers_invalid_json_raises(monkeypatch):
-    """Invalid JSON in EXTRA_HEADERS env var raises an error."""
+    """Invalid JSON in EXTRA_HEADERS env var raises SettingsError.
+
+    pydantic-settings 2.x parses dict fields from env vars as JSON internally;
+    invalid JSON raises SettingsError before the model_validator runs.
+    """
     monkeypatch.setenv("EXTRA_HEADERS", "not-valid-json")
-    with pytest.raises(Exception):
+    with pytest.raises(SettingsError):
         Settings()
 
 
