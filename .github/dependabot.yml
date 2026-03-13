@@ -1,0 +1,88 @@
+version: 2
+updates:
+  # GitHub Actions
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    labels:
+      - dependencies
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+
+  # Python — tools/a2a_bridge_server
+  - package-ecosystem: pip
+    directory: /tools/a2a_bridge_server
+    schedule:
+      interval: weekly
+    labels:
+      - dependencies
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+
+  # Python — tools/k8s_readonly_server
+  - package-ecosystem: pip
+    directory: /tools/k8s_readonly_server
+    schedule:
+      interval: weekly
+    labels:
+      - dependencies
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+
+  # Python — agents/k8s_debug_agent
+  - package-ecosystem: pip
+    directory: /agents/k8s_debug_agent
+    schedule:
+      interval: weekly
+    labels:
+      - dependencies
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+
+  # Python — agents/source_code_analyzer
+  - package-ecosystem: pip
+    directory: /agents/source_code_analyzer
+    schedule:
+      interval: weekly
+    labels:
+      - dependencies
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+
+  # Docker — tools/a2a_bridge_server
+  - package-ecosystem: docker
+    directory: /tools/a2a_bridge_server
+    schedule:
+      interval: weekly
+    labels:
+      - dependencies
+
+  # Docker — tools/k8s_readonly_server
+  - package-ecosystem: docker
+    directory: /tools/k8s_readonly_server
+    schedule:
+      interval: weekly
+    labels:
+      - dependencies
+
+  # Docker — agents/k8s_debug_agent
+  - package-ecosystem: docker
+    directory: /agents/k8s_debug_agent
+    schedule:
+      interval: weekly
+    labels:
+      - dependencies
+
+  # Docker — agents/source_code_analyzer
+  - package-ecosystem: docker
+    directory: /agents/source_code_analyzer
+    schedule:
+      interval: weekly
+    labels:
+      - dependencies

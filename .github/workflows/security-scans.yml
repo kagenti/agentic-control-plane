@@ -1,0 +1,188 @@
+name: Security Scans
+
+on:
+  pull_request:
+    branches: [main]
+
+# Explicit permissions — jobs request only what they need
+permissions: {}
+
+jobs:
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v4
+
+      - name: Dependency Review
+        id: dependency-review
+        uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48  # v4
+        with:
+          fail-on-severity: moderate
+          deny-licenses: GPL-3.0, AGPL-3.0
+          comment-summary-in-pr: never
+
+      - name: Show scan results
+        if: always()
+        env:
+          CHANGES: ${{ steps.dependency-review.outputs.dependency-changes }}
+          VULNS: ${{ steps.dependency-review.outputs.vulnerable-changes }}
+          LICENSES: ${{ steps.dependency-review.outputs.invalid-license-changes }}
+        run: |
+          echo "=== Dependency Review Results ==="
+          echo "--- Vulnerable Dependencies ---"
+          if [ -n "$VULNS" ] && [ "$VULNS" != "null" ] && [ "$VULNS" != "[]" ]; then
+            echo "$VULNS" | jq '.' 2>/dev/null || echo "$VULNS"
+          else
+            echo "No vulnerabilities found."
+          fi
+          echo "--- License Issues ---"
+          if [ -n "$LICENSES" ] && [ "$LICENSES" != "null" ] && [ "$LICENSES" != "[]" ]; then
+            echo "$LICENSES" | jq '.' 2>/dev/null || echo "$LICENSES"
+          else
+            echo "No license issues found."
+          fi
+
+  bandit:
+    name: Python Security (Bandit)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v4
+
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Bandit
+        run: pip install bandit[toml]
+
+      - name: Run Bandit (HIGH severity — blocking)
+        run: |
+          HIGH=$(bandit -r agents/ tools/ \
+            --severity-level high --confidence-level high \
+            --exclude '**/tests/*' \
+            -f json 2>/dev/null | jq '.results | length' 2>/dev/null || echo "0")
+          if [ "$HIGH" -gt 0 ]; then
+            bandit -r agents/ tools/ \
+              --severity-level high --confidence-level high \
+              --exclude '**/tests/*' -f txt
+            exit 1
+          fi
+          echo "No HIGH severity issues found."
+
+      - name: Run Bandit (MEDIUM — informational)
+        run: |
+          bandit -r agents/ tools/ \
+            --severity-level medium --confidence-level medium \
+            --exclude '**/tests/*' -f txt || true
+
+  hadolint:
+    name: Dockerfile Lint (Hadolint)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v4
+
+      - name: Run Hadolint
+        uses: hadolint/hadolint-action@2332a7b74a6de0dda2e2221d575162eba76ba5e5  # v3.3.0
+        with:
+          recursive: true
+          failure-threshold: warning
+          ignore: DL3008,DL3013,DL3018,DL3059
+
+  shellcheck:
+    name: Shell Script Lint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v4
+
+      - name: Run shellcheck
+        run: |
+          SCRIPTS=$(find . -name "*.sh" -type f | grep -v ".git/" || true)
+          if [ -z "$SCRIPTS" ]; then
+            echo "No shell scripts found."
+            exit 0
+          fi
+          echo "Checking: $SCRIPTS"
+          FAILED=0
+          for s in $SCRIPTS; do
+            shellcheck --severity=error "$s" || FAILED=1
+          done
+          [ $FAILED -eq 0 ] || exit 1
+
+  trivy-fs:
+    name: Trivy Filesystem Scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v4
+
+      - name: Trivy scan (informational — all severities)
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1  # v0.35.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          severity: CRITICAL,HIGH,MEDIUM
+          exit-code: 0
+          ignore-unfixed: true
+          format: table
+
+      - name: Trivy config scan (IaC — blocking)
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1  # v0.35.0
+        with:
+          scan-type: config
+          scan-ref: .
+          severity: CRITICAL,HIGH
+          exit-code: 1
+          format: table
+
+  codeql:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@0d579ffd059c29b07949a3cce3983f0780820c98  # v4
+        with:
+          languages: python
+          queries: security-extended
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@0d579ffd059c29b07949a3cce3983f0780820c98  # v4
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@0d579ffd059c29b07949a3cce3983f0780820c98  # v4
+        with:
+          category: /language:python
+
+  action-pinning:
+    name: Verify Action Pinning
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v4
+
+      - name: Check for unpinned GitHub Actions
+        run: |
+          UNPINNED=$(grep -rh "uses:" .github/workflows/ | grep -v "#" \
+            | grep -E "@v[0-9]|@main|@master" | sort -u || true)
+          if [ -n "$UNPINNED" ]; then
+            echo "::warning::Found actions not pinned to SHA commits:"
+            echo "$UNPINNED"
+          else
+            echo "All actions are SHA-pinned."
+          fi
