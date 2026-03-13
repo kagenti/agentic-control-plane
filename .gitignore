@@ -36,3 +36,13 @@ coverage.xml
 # OS files
 .DS_Store
 Thumbs.db
+
+# Secrets and credentials — never commit these
+*.key
+*.pem
+*.p12
+*.jks
+credentials.*
+secrets.*
+*kubeconfig*
+kubeconfig
