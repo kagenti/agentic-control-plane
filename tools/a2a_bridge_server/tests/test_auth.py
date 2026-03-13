@@ -1,6 +1,6 @@
 """Tests for authentication context management and K8s client creation."""
 
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 

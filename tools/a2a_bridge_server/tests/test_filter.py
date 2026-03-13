@@ -4,7 +4,6 @@ from unittest.mock import patch
 
 from lib import discovery
 
-
 # Sample agent data for testing
 SAMPLE_AGENTS = [
     {

@@ -18,3 +18,7 @@ testpaths = [
     "tools/a2a_bridge_server/tests",
     "agents/k8s_debug_agent/tests",
 ]
+pythonpath = [
+    "agents/k8s_debug_agent",
+    "tools/a2a_bridge_server",
+]
