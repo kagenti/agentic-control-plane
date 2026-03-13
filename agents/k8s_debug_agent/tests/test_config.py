@@ -52,6 +52,7 @@ def test_extra_headers_invalid_json_raises(monkeypatch):
     monkeypatch.setenv("EXTRA_HEADERS", "not-valid-json")
     with pytest.raises(ValueError, match="EXTRA_HEADERS must be a valid JSON string"):
         from importlib import reload
+
         import k8s_debug_agent.config as cfg_module
 
         reload(cfg_module)

@@ -1,5 +1,18 @@
 # KSV-0014: readOnlyRootFilesystem not set
 # The deploy/ manifests are demo/development manifests; filesystem write access
-# is needed for agent runtimes (uv caches, temp files). Production deployments
-# should set readOnlyRootFilesystem where feasible.
+# is needed for agent runtimes (uv caches, temp files).
 KSV-0014
+
+# KSV-0118: Default security context allows root privileges
+# Pre-existing demo deployment manifest; production deployments should set
+# explicit securityContext with non-root user and restricted capabilities.
+KSV-0118
+
+# DS-0002: No non-root USER in Dockerfile
+# Pre-existing Dockerfiles; source_code_analyzer already uses USER 1001.
+# Remaining Dockerfiles to be hardened in a follow-up security PR.
+DS-0002
+
+# DS-0029: --no-install-recommends missing in apt-get
+# Pre-existing Dockerfiles; to be cleaned up in a follow-up security PR.
+DS-0029

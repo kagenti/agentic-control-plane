@@ -8,46 +8,9 @@ on:
 permissions: {}
 
 jobs:
-  dependency-review:
-    name: Dependency Review
-    runs-on: ubuntu-latest
-    # Requires the dependency graph to be enabled on the repo.
-    # If the graph is not enabled, this job is informational only.
-    continue-on-error: true
-    permissions:
-      contents: read
-      pull-requests: write
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v4
-
-      - name: Dependency Review
-        id: dependency-review
-        uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48  # v4
-        with:
-          fail-on-severity: moderate
-          deny-licenses: GPL-3.0, AGPL-3.0
-          comment-summary-in-pr: never
-
-      - name: Show scan results
-        if: always()
-        env:
-          CHANGES: ${{ steps.dependency-review.outputs.dependency-changes }}
-          VULNS: ${{ steps.dependency-review.outputs.vulnerable-changes }}
-          LICENSES: ${{ steps.dependency-review.outputs.invalid-license-changes }}
-        run: |
-          echo "=== Dependency Review Results ==="
-          echo "--- Vulnerable Dependencies ---"
-          if [ -n "$VULNS" ] && [ "$VULNS" != "null" ] && [ "$VULNS" != "[]" ]; then
-            echo "$VULNS" | jq '.' 2>/dev/null || echo "$VULNS"
-          else
-            echo "No vulnerabilities found."
-          fi
-          echo "--- License Issues ---"
-          if [ -n "$LICENSES" ] && [ "$LICENSES" != "null" ] && [ "$LICENSES" != "[]" ]; then
-            echo "$LICENSES" | jq '.' 2>/dev/null || echo "$LICENSES"
-          else
-            echo "No license issues found."
-          fi
+  # dependency-review requires the GitHub Dependency Graph to be enabled
+  # (Settings → Security → Dependency graph). Re-enable once it's turned on.
+  # dependency-review: ...
 
   bandit:
     name: Python Security (Bandit)
