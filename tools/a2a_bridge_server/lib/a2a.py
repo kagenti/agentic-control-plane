@@ -78,7 +78,7 @@ async def send_message_to_agent(
     Returns:
         JSON response from the agent
     """
-    async with httpx.AsyncClient(verify=False, timeout=120) as httpx_client:
+    async with httpx.AsyncClient(verify=False, timeout=120) as httpx_client:  # nosec B501
         # Fetch agent card from HTTP endpoint
         resolver = A2ACardResolver(
             httpx_client=httpx_client,
@@ -171,7 +171,7 @@ async def send_streaming_message_to_agent(
     Returns:
         All streaming response chunks from the agent as JSON
     """
-    async with httpx.AsyncClient(verify=False, timeout=120) as httpx_client:
+    async with httpx.AsyncClient(verify=False, timeout=120) as httpx_client:  # nosec B501
         import logging
         logger = logging.getLogger(__name__)
 

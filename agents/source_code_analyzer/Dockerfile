@@ -6,7 +6,7 @@ RUN apt-get update \
 
 COPY --from=ghcr.io/astral-sh/uv:0.6.8 /uv /uvx /bin/
 
-ADD . /app
+COPY . /app
 
 WORKDIR /app
 

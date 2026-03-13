@@ -1,0 +1,5 @@
+# KSV-0014: readOnlyRootFilesystem not set
+# The deploy/ manifests are demo/development manifests; filesystem write access
+# is needed for agent runtimes (uv caches, temp files). Production deployments
+# should set readOnlyRootFilesystem where feasible.
+KSV-0014

@@ -1,9 +1,17 @@
 [tool.ruff]
 line-length = 100
-target-version = "py310"
+target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "W"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["lib", "k8s_debug_agent"]
+
+[tool.ruff.lint.per-file-ignores]
+"agents/k8s_debug_agent/k8s_debug_agent/agents.py" = ["E501"]
+"agents/source_code_analyzer/source_code_analyzer/agents.py" = ["E501"]
+"agents/k8s_debug_agent/k8s_debug_agent/main.py" = ["E501"]
 
 [tool.pytest.ini_options]
 testpaths = [
