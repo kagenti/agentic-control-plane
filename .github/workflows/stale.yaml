@@ -18,4 +18,5 @@ permissions:
 
 jobs:
   stale:
+    # Pinned to @main intentionally: org-internal workflows propagate updates automatically.
     uses: kagenti/.github/.github/workflows/stale.yaml@main
