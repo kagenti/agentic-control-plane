@@ -1,6 +1,6 @@
 # A2A Bridge MCP Server
 
-An MCP (Model Context Protocol) server that bridges MCP clients (like Claude, coding assistants, and other agents) to [A2A-compliant agents](https://github.com/a2a-protocol/a2a-protocol) running in Kubernetes clusters managed by Kagenti.
+An MCP (Model Context Protocol) server that bridges MCP clients (like Claude, coding assistants, and other agents) to [A2A-compliant agents](https://github.com/a2aproject/A2A) running in Kubernetes clusters managed by Kagenti.
 
 ## What is this?
 
